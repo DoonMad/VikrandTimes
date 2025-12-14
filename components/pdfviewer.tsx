@@ -52,20 +52,29 @@
 
 "use client";
 
+import { useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.4.296/build/pdf.worker.mjs`;
 
 export default function Viewer({ url }: {url: string}) {
+    const [page, setPage] = useState(1);
+    const [scale, setScale] = useState(1.6);
   return (
     <Document file={url} loading="Loading newspaper...">
+        <div>
+            <button onClick={() => setPage(p => Math.max(1, p - 1))}>Prev</button>
+            <button onClick={() => setPage(p => p + 1)}>Next</button>
+            <button onClick={() => setScale(s => s + 0.2)}>Zoom +</button>
+            <button onClick={() => setScale(s => Math.max(0.5, s - 0.2))}>Zoom -</button>
+        </div>
         <Page
-            pageNumber={1}
-            scale={1.6}
+            pageNumber={page}
+            scale={scale}
             renderTextLayer={false}
             renderAnnotationLayer={false}
             devicePixelRatio={window.devicePixelRatio}
-            className={'m-auto block w-fit'}
+            className={'m-auto block w-fit bg-gray-600'}
         />
     </Document>
   );
