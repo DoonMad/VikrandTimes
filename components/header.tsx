@@ -72,10 +72,12 @@ export default function Header() {
           </button>
 
           {/* Sign in */}
-          <button className="flex items-center gap-1 text-gray-700 hover:text-red-700 cursor-pointer">
+          <Link
+            href={'/auth'}
+            className="flex items-center gap-1 text-gray-700 hover:text-red-700 cursor-pointer">
             <User size={18} />
             <span className="hidden sm:inline">Sign In</span>
-          </button>
+          </Link>
         </div>
       </div>
     </header>
