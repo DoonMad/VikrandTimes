@@ -45,3 +45,64 @@ create trigger on_auth_user_email_confirmed
 after update on auth.users
 for each row
 execute procedure handle_email_confirmed_user();
+
+
+-- altered profiles to have user and admin roles
+alter table profiles
+add column role text not null default 'user'
+check (role in ('user', 'admin'));
+
+
+-- create editions table
+create table editions (
+  id uuid primary key default gen_random_uuid(),
+  publish_date date not null unique,
+  pdf_url text not null,
+  created_at timestamp with time zone default now(),
+  updated_at timestamp with time zone default now()
+);
+
+-- RLS for editions
+alter table editions enable row level security;
+
+create policy "Admins can insert editions"
+on editions
+for insert
+to authenticated
+with check (
+  exists (
+    select 1 from profiles
+    where user_id = auth.uid()
+      and role = 'admin'
+  )
+);
+
+create policy "Admins can update editions"
+on editions
+for update
+to authenticated
+using (
+  exists (
+    select 1 from profiles
+    where user_id = auth.uid()
+      and role = 'admin'
+  )
+);
+
+create policy "Admins can delete editions"
+on editions
+for delete
+to authenticated
+using (
+  exists (
+    select 1 from profiles
+    where user_id = auth.uid()
+      and role = 'admin'
+  )
+);
+
+create policy "Anyone can read editions"
+on editions
+for select
+to anon, authenticated
+using (true);
