@@ -13,10 +13,12 @@ import {
   Newspaper,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { redirect } from "next/navigation";
 
 export default function AuthForm() {
   const supabase = createClient();
+  const router = useRouter();
 
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -40,10 +42,17 @@ export default function AuthForm() {
 
     if (error) {
       setError(error.message);
+      setLoading(false);
+      return;
     }
 
     setLoading(false);
-    redirect('/');
+    // router.refresh();
+    // router.push('/');
+    // redirect('/');
+    router.replace("/");
+    router.refresh();
+    
   };
 
   const handleSignUp = async () => {
@@ -65,6 +74,15 @@ export default function AuthForm() {
     if (error) {
       setError(error.message);
       setLoading(false);
+      router.refresh();
+      return;
+    }
+    
+    if (data.user && data.user.identities?.length === 0) {
+      // Email already exists (verified OR unverified)
+      setError("An account with this email already exists. Please sign in. (If you haven't verified your email, do that first.)");
+      setLoading(false);
+      router.refresh();
       return;
     }
     

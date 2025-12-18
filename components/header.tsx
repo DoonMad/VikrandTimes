@@ -4,10 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { Moon, Sun, Globe, User } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/providers/AuthProvider";
+import AccountMenu from "./AccountMenu";
 
 export default function Header() {
   const [dark, setDark] = useState(false);
   const [lang, setLang] = useState<"mr" | "en">("mr");
+  const user = useAuth();
+  // console.log(user);
 
   return (
     <header className="border-b border-gray-200 bg-white">
@@ -72,12 +76,17 @@ export default function Header() {
           </button>
 
           {/* Sign in */}
-          <Link
-            href={'/auth'}
-            className="flex items-center gap-1 text-gray-700 hover:text-red-700 cursor-pointer">
-            <User size={18} />
-            <span className="hidden sm:inline">Sign In</span>
-          </Link>
+          {user === null ? (
+            <Link
+              href="/auth"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 border border-gray-200 transition-colors"
+            >
+              <User size={16} className="text-gray-600" />
+              <span className="hidden sm:inline text-sm font-medium">Sign In</span>
+            </Link>
+          ) : (
+            <AccountMenu />
+          )}
         </div>
       </div>
     </header>

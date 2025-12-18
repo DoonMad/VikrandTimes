@@ -89,7 +89,7 @@ export default function Viewer({ url }: { url: string }) {
             <button
               onClick={goToPrevPage}
               disabled={page === 1}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40"
+              className="cursor-pointer disabled:cursor-not-allowed px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40"
             >
               ← Prev
             </button>
@@ -104,7 +104,7 @@ export default function Viewer({ url }: { url: string }) {
             <button
               onClick={goToNextPage}
               disabled={numPages !== null && page === numPages}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40"
+              className="cursor-pointer disabled:cursor-not-allowed px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40"
             >
               Next →
             </button>
@@ -114,19 +114,19 @@ export default function Viewer({ url }: { url: string }) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => handleZoom(-ZOOM_STEP)}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50"
+              className="cursor-pointer px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
               title="Zoom Out"
             >
               -
             </button>
             
-            <div className="text-sm text-gray-700 min-w-[60px] text-center">
+            <div className="text-sm text-gray-700 min-w-[50px] text-center">
               {Math.round(scale * 100)}%
             </div>
             
             <button
               onClick={() => handleZoom(ZOOM_STEP)}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50"
+              className="cursor-pointer px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
               title="Zoom In"
             >
               +
@@ -134,7 +134,7 @@ export default function Viewer({ url }: { url: string }) {
             
             <button
               onClick={handleFitToWidth}
-              className={`px-3 py-1.5 text-sm border rounded ${
+              className={`px-2 py-1 text-sm border rounded cursor-pointer ${
                 isFitToWidth 
                   ? 'bg-red-50 text-red-700 border-red-300' 
                   : 'border-gray-300 hover:bg-gray-50'
@@ -189,7 +189,7 @@ export default function Viewer({ url }: { url: string }) {
             <button
               onClick={goToPrevPage}
               disabled={page === 1}
-              className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40"
+              className="cursor-pointer disabled:cursor-not-allowed px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40"
             >
               Previous Page
             </button>
@@ -197,7 +197,7 @@ export default function Viewer({ url }: { url: string }) {
             <button
               onClick={goToNextPage}
               disabled={numPages !== null && page === numPages}
-              className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40"
+              className="cursor-pointer disabled:cursor-not-allowed px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40"
             >
               Next Page
             </button>
