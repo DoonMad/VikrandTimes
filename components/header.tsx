@@ -41,7 +41,7 @@ export default function Header() {
           <Link href="/" className="text-gray-700 hover:text-red-700">
             Latest
           </Link>
-          <Link href="/archive" className="text-gray-700 hover:text-red-700">
+          <Link href="/edition" className="text-gray-700 hover:text-red-700">
             Archive
           </Link>
           <Link href="/about" className="text-gray-700 hover:text-red-700">
