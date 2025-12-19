@@ -1,3 +1,4 @@
+import AdminForm from "@/components/admin/AdminForm";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -19,4 +20,6 @@ export default async function Admin() {
     if (error || !profile || profile.role !== "admin") {
         redirect("/");
     }
+
+    return <AdminForm />
 }

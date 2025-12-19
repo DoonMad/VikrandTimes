@@ -106,3 +106,21 @@ on editions
 for select
 to anon, authenticated
 using (true);
+
+
+-- updated editions table
+create table if not exists editions (
+  publish_date date primary key,
+  created_at timestamp with time zone default now(),
+  updated_at timestamp with time zone default now()
+);
+
+-- RLS for storage bucket (manually went to storage bucket and added policies for update, delete, insert and select)
+bucket_id = 'editions-pdf'
+AND auth.role() = 'authenticated'
+AND EXISTS (
+  SELECT 1
+  FROM profiles
+  WHERE profiles.user_id = auth.uid()
+    AND profiles.role = 'admin'
+)
