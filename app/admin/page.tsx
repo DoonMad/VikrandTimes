@@ -1,6 +1,6 @@
 import AdminForm from "@/components/admin/AdminForm";
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 
 export default async function Admin() {
@@ -9,7 +9,7 @@ export default async function Admin() {
         data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) redirect("/auth");
+    if (!user) notFound();
 
     const { data: profile, error } = await supabase
         .from("profiles")
@@ -18,7 +18,7 @@ export default async function Admin() {
         .single();
 
     if (error || !profile || profile.role !== "admin") {
-        redirect("/");
+        notFound();
     }
 
     return <AdminForm />

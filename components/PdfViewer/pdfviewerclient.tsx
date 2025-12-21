@@ -5,15 +5,18 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import PdfViewerSkeleton from "./PdfViewerSkeleton";
 
 const PdfViewer = dynamic(
   () => import("./pdfviewer"),
   {
     ssr: false,
-    loading: () => <p>Loading PDF viewer…</p>,
+    loading: () => <PdfViewerSkeleton />,
   }
 );
 
 export default function PdfViewerClient({ url }: { url: string }) {
-  return <PdfViewer url={url} />;
+  return (
+      <PdfViewer url={url} />
+  );
 }

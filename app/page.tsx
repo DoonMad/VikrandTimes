@@ -19,7 +19,7 @@ export default async function Home() {
     );
   }
 
-  console.log(`/edition/${data.publish_date}`);
+  // console.log(`/edition/${data.publish_date}`);
 
   redirect(`/edition/${data.publish_date}`);
 }

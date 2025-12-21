@@ -3,7 +3,7 @@ import { Noto_Sans_Devanagari, Inter } from "next/font/google";
 import "./globals.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
-import Header from "@/components/header";
+import Header from "@/components/layout/Header";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { createClient } from "@/lib/supabase/server";
 

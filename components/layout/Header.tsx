@@ -5,20 +5,31 @@ import Link from "next/link";
 import { Moon, Sun, Globe, User } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
-import AccountMenu from "./AccountMenu";
+import AccountMenu from "../AccountMenu";
+import { usePathname, useRouter } from "next/navigation";
+
 
 export default function Header() {
-  const [dark, setDark] = useState(false);
-  const [lang, setLang] = useState<"mr" | "en">("mr");
+  // const [dark, setDark] = useState(false);
+  // const [lang, setLang] = useState<"mr" | "en">("mr");
   const user = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const isReadActive = pathname.startsWith('/edition/');
   // console.log(user);
+
+  const linkClass = (active: boolean) =>
+    active
+      ? "text-red-700 font-semibold"
+      : "text-gray-700 hover:text-red-700";
 
   return (
     <header className="border-b border-gray-200 bg-white">
       <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between">
         
         {/* LEFT: Brand */}
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center cursor-pointer" onClick={() => router.push('/')}>
           <div className="relative h-10 w-40">
             <Image
               src="/logo.png"
@@ -38,16 +49,16 @@ export default function Header() {
 
         {/* CENTER: Navigation */}
         <nav className="hidden md:flex gap-8 font-medium">
-          <Link href="/" className="text-gray-700 hover:text-red-700">
-            Latest
+          <Link href="/" className={linkClass(isReadActive)}>
+            Read
           </Link>
-          <Link href="/edition" className="text-gray-700 hover:text-red-700">
+          <Link href="/archive" className={linkClass(pathname === "/archive")}>
             Archive
           </Link>
-          <Link href="/about" className="text-gray-700 hover:text-red-700">
+          <Link href="/about" className={linkClass(pathname === "/about")}>
             About
           </Link>
-          <Link href="/contact" className="text-gray-700 hover:text-red-700">
+          <Link href="/contact" className={linkClass(pathname === "/contact")}>
             Contact
           </Link>
         </nav>
@@ -56,7 +67,7 @@ export default function Header() {
         <div className="flex items-center gap-3">
           
           {/* Language toggle */}
-          <button
+          {/* <button
             onClick={() => setLang(l => (l === "mr" ? "en" : "mr"))}
             className="p-2 rounded hover:bg-gray-100 text-gray-700 cursor-pointer"
             title="Toggle Language"
@@ -65,15 +76,15 @@ export default function Header() {
           </button>
           <span className="text-sm text-gray-700 ml-1">
             {lang.toUpperCase()}
-          </span>
+          </span> */}
           {/* Theme toggle */}
-          <button
+          {/* <button
             onClick={() => setDark(d => !d)}
             className="p-2 rounded hover:bg-gray-100 text-gray-700 cursor-pointer"
             title="Toggle Theme"
           >
             {dark ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+          </button> */}
 
           {/* Sign in */}
           {user === null ? (

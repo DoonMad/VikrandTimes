@@ -20,6 +20,7 @@ export default function Viewer({ url }: { url: string }) {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [scrollStart, setScrollStart] = useState({ x: 0, y: 0 });
   const [fitScale, setFitScale] = useState(1);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   
   
   const containerRef = useRef<HTMLDivElement>(null);
@@ -31,6 +32,7 @@ export default function Viewer({ url }: { url: string }) {
     const viewport = page.getViewport({ scale: 1 });
     setPdfWidth(viewport.width);
     setPdfHeight(viewport.height);
+    setIsPageLoading(false);
   }, []);
 
   // Calculate fit-to-width scale
@@ -162,6 +164,14 @@ export default function Viewer({ url }: { url: string }) {
 
   return (
     <div className="min-h-screen bg-white">
+      {isPageLoading && (
+        <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-red-200 border-t-red-700 rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-700">Rendering page {page}...</p>
+          </div>
+        </div>
+      )}
       {/* Toolbar */}
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3 ">
         <div className="max-w-7xl mx-auto">
