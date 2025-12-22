@@ -7,6 +7,7 @@ import Header from "@/components/layout/Header";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { createClient } from "@/lib/supabase/server";
 import Footer from "@/components/layout/Footer";
+import { Analytics } from '@vercel/analytics/next';
 
 // Marathi font
 const marathi = Noto_Sans_Devanagari({
@@ -48,6 +49,7 @@ export default async function RootLayout({
           <Header />
           <main className="min-h-screen">{children}</main>
           <Footer />
+          <Analytics />
         </body>
       </AuthProvider>
     </html>

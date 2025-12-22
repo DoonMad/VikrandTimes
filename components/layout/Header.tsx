@@ -15,6 +15,7 @@ export default function Header() {
   const user = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const isReadActive = pathname.startsWith('/edition/');
   // console.log(user);
@@ -85,6 +86,15 @@ export default function Header() {
           >
             {dark ? <Sun size={18} /> : <Moon size={18} />}
           </button> */}
+
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden p-2 rounded hover:bg-gray-100"
+            aria-label="Toggle menu"
+          >
+            ☰
+          </button>
+
 
           {/* Sign in */}
           {user === null ? (
