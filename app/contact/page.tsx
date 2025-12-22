@@ -1,6 +1,13 @@
 import { Mail, Phone, Megaphone } from "lucide-react";
 import ContactForm from "@/components/ContactForm";
 
+export const metadata = {
+  title: "Contact & Advertise",
+  description:
+    "Contact Vikrand Times for advertising inquiries, feedback, or general communication.",
+};
+
+
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gray-50">

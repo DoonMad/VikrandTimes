@@ -73,7 +73,7 @@ export default function AccountMenu() {
           </div>
 
           {/* Menu Items */}
-          <div className="py-1">
+          {/* <div className="py-1">
             <Link
               href="/account"
               className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -104,7 +104,7 @@ export default function AccountMenu() {
               </svg>
               Reading History
             </Link>
-          </div>
+          </div> */}
 
           {/* Logout Button */}
           <div className="border-t border-gray-100 pt-1">

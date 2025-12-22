@@ -20,10 +20,16 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Vikrand Times - साप्ताहिक मराठी वृत्तपत्र",
-  description: "Vikrand Times - A Marathi weekly newspaper publishing for over 10 years",
+export const metadata = {
+  title: {
+    default: "Vikrand Times – Marathi Weekly Newspaper",
+    template: "%s | Vikrand Times",
+  },
+  description:
+    "Vikrand Times is a Marathi weekly newspaper covering local news, public interest stories, and community issues.",
+  metadataBase: new URL("https://vikrandtimes.com"),
 };
+
 
 export default async function RootLayout({
   children,

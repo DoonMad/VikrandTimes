@@ -4,6 +4,12 @@ import { Calendar, ChevronLeft, ChevronRight, Newspaper } from "lucide-react";
 
 const PAGE_SIZE = 12; // Changed to 12 for better grid layout
 
+export const metadata = {
+  title: "Archive",
+  description: "Browse previous editions of Vikrand Times Marathi newspaper.",
+};
+
+
 type PageProps = {
   searchParams: Promise<{
     page?: string;

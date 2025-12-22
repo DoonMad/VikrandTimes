@@ -1,3 +1,11 @@
+
+export const metadata = {
+  title: "About Us",
+  description:
+    "Learn about Vikrand Times, a Marathi weekly newspaper, and its founder Arunkumar Mundada.",
+};
+
+
 export default function About() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">

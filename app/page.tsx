@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+export const metadata = {
+  title: "Latest Edition",
+};
+
+
 export default async function Home() {
   const supabase = await createClient();
 
