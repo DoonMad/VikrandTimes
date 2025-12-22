@@ -6,6 +6,7 @@ import "react-pdf/dist/Page/TextLayer.css";
 import Header from "@/components/layout/Header";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { createClient } from "@/lib/supabase/server";
+import Footer from "@/components/layout/Footer";
 
 // Marathi font
 const marathi = Noto_Sans_Devanagari({
@@ -20,9 +21,9 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: {
-    default: "Vikrand Times – Marathi Weekly Newspaper",
+    default: "Vikrand Times - Marathi Weekly Newspaper",
     template: "%s | Vikrand Times",
   },
   description:
@@ -46,14 +47,7 @@ export default async function RootLayout({
         <body className="font-sans antialiased overflow-x-hidden bg-white">
           <Header />
           <main className="min-h-screen">{children}</main>
-          
-          {/* Footer */}
-          <footer className="border-t border-gray-200 py-6 mt-8">
-            <div className="container mx-auto px-4 text-center text-gray-600 text-sm">
-              <p>© {new Date().getFullYear()} Vikrand Times. सर्व हक्क राखीव.</p>
-              <p className="mt-1">Postal Reg. No. H2/RNP/AGD-144/2017-1 | RNI NO. MAHMAR/20</p>
-            </div>
-          </footer>
+          <Footer />
         </body>
       </AuthProvider>
     </html>

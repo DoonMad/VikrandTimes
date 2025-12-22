@@ -1,4 +1,3 @@
-// app/not-found.tsx (Simpler version)
 import Link from "next/link";
 import { Home, Archive } from "lucide-react";
 
