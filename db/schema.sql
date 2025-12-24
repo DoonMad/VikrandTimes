@@ -124,3 +124,75 @@ AND EXISTS (
   WHERE profiles.user_id = auth.uid()
     AND profiles.role = 'admin'
 )
+
+
+-- contact form messages implementation
+-- Create the contact_messages table
+CREATE TABLE contact_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT,
+  subject TEXT NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  is_read BOOLEAN DEFAULT false,
+  responded BOOLEAN DEFAULT false,
+  response_notes TEXT
+);
+
+-- Enable RLS
+ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Allow public to insert (for contact form submissions)
+CREATE POLICY "Public can insert contact messages" 
+ON contact_messages 
+FOR INSERT 
+TO anon, authenticated 
+WITH CHECK (true);
+
+-- Policy: Only admins can view messages
+CREATE POLICY "Admins can view all messages" 
+ON contact_messages 
+FOR SELECT 
+TO authenticated 
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles 
+    WHERE profiles.user_id = auth.uid() 
+    AND profiles.role = 'admin'
+  )
+);
+
+-- Policy: Only admins can update messages (mark as read/responded)
+CREATE POLICY "Admins can update messages" 
+ON contact_messages 
+FOR UPDATE 
+TO authenticated 
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles 
+    WHERE profiles.user_id = auth.uid() 
+    AND profiles.role = 'admin'
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM profiles 
+    WHERE profiles.user_id = auth.uid() 
+    AND profiles.role = 'admin'
+  )
+);
+
+-- Add delete policy if missing
+CREATE POLICY "Admins can delete messages" 
+ON contact_messages 
+FOR DELETE 
+TO authenticated 
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles 
+    WHERE profiles.user_id = auth.uid() 
+    AND profiles.role = 'admin'
+  )
+);

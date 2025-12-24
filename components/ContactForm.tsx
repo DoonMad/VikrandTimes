@@ -1,8 +1,9 @@
-// app/contact/ContactForm.tsx
+// app/contact/ContactForm.tsx - UPDATED
 "use client";
 
 import { useState } from "react";
 import { Send, Loader2, CheckCircle } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -14,6 +15,9 @@ export default function ContactForm() {
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const supabase = createClient();
 
   const contactReasons = [
     "Advertising Inquiry",
@@ -23,20 +27,68 @@ export default function ContactForm() {
     // "Partnership",
     "General Feedback",
     "Report Error",
+    "Other",
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Form submission STARTED");
+    
     setLoading(true);
+    setError(null);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setSuccess(true);
-    setLoading(false);
-    setTimeout(() => setSuccess(false), 5000);
-    setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+    try {
+      const { error: insertError } = await supabase
+        .from("contact_messages")
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          subject: formData.subject,
+          message: formData.message,
+          // Remove the metadata field
+          // created_at and is_read/responded will use defaults
+        });
+
+      if (insertError) {
+        console.error("Insert error:", insertError);
+        setError("Failed to send message. Please try again.");
+        setLoading(false);
+        return;
+      }
+      
+      console.log("Message sent successfully!");
+      setSuccess(true);
+      
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+      });
+
+    } catch (err) {
+      console.error("Submit error:", err);
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Email notification function. will implement later
+  // const sendEmailNotification = async (data: typeof formData) => {
+    // can integrate with Supabase Edge Functions, Resend, or other email service
+    // Example placeholder:
+    /*
+    await fetch('/api/send-contact-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    */
+  // };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
@@ -48,10 +100,26 @@ export default function ContactForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {success && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
           <div className="flex items-center gap-2 text-green-700">
             <CheckCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">Message sent! We&apos;ll contact you soon.</span>
+            <div>
+              <p className="font-medium">Message sent successfully!</p>
+              <p className="text-sm mt-1">
+                Thank you for contacting Vikrand Times. We&apos;ll respond within 24-48 hours.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center gap-2 text-red-700">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <p className="font-medium">{error}</p>
           </div>
         </div>
       )}
@@ -119,15 +187,6 @@ export default function ContactForm() {
           ))}
         </select>
       </div>
-
-      {formData.subject === "Advertising Inquiry" && (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
-            For advertising, please mention: Preferred ad size, duration, and any special requirements.
-            Our team will send you a detailed quote within 24 hours.
-          </p>
-        </div>
-      )}
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
