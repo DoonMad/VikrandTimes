@@ -25,7 +25,7 @@ export default function About() {
           reporting.
         </p>
         <p className="text-gray-700 leading-relaxed mt-3">
-          Published twice a week, Vikrand Times aims to present news in a clear,
+          Published once a week, Vikrand Times aims to present news in a clear,
           responsible, and accessible manner for Marathi readers. Over the
           years, the newspaper has built a loyal readership by staying rooted in
           ground-level reporting and covering issues that matter to everyday
