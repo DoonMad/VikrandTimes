@@ -45,15 +45,16 @@ export default async function RootLayout({
 
   return (
     <html lang="mr" className={`${marathi.variable} ${inter.variable}`}>
+      <head>
+        {/* Umami Analytics */}
+        <Script
+          src="https://cloud.umami.is/script.js"
+          data-website-id="38090cc4-519e-4014-aa37-f5504164df72"
+          strategy="afterInteractive"
+        />
+      </head>
       <AuthProvider user={user}>
         <body className="font-sans antialiased overflow-x-hidden bg-white">
-          {/* Umami Analytics */}
-          <Script
-            src="https://cloud.umami.is/script.js"
-            data-website-id="38090cc4-519e-4014-aa37-f5504164df72"
-            strategy="afterInteractive"
-          />
-          <Analytics /> {/* Vercel Analytics */}
           <Header />
           <main className="min-h-screen">{children}</main>
           <Footer />
