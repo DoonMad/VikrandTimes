@@ -196,3 +196,133 @@ USING (
     AND profiles.role = 'admin'
   )
 );
+
+-- create special_editions table
+create table if not exists special_editions (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
+  title text not null,
+  publish_date date not null,
+  thumbnail_url text,
+  created_at timestamp with time zone default now(),
+  updated_at timestamp with time zone default now()
+);
+
+-- RLS for special_editions
+alter table special_editions enable row level security;
+
+create policy "Admins can insert special editions"
+on special_editions
+for insert
+to authenticated
+with check (
+  exists (
+    select 1 from profiles
+    where user_id = auth.uid()
+      and role = 'admin'
+  )
+);
+
+create policy "Admins can update special editions"
+on special_editions
+for update
+to authenticated
+using (
+  exists (
+    select 1 from profiles
+    where user_id = auth.uid()
+      and role = 'admin'
+  )
+);
+
+create policy "Admins can delete special editions"
+on special_editions
+for delete
+to authenticated
+using (
+  exists (
+    select 1 from profiles
+    where user_id = auth.uid()
+      and role = 'admin'
+  )
+);
+
+create policy "Anyone can read special editions"
+on special_editions
+for select
+to anon, authenticated
+using (true);
+
+-- NOTE: Manual Actions needed in Supabase UI:
+-- 1. Create a public bucket "special-editions-pdf"
+-- 2. Create a public bucket "special-editions-thumbnails"
+-- 3. Add Insert/Update/Delete/Select Storage Policies to the two new buckets for Admin access and Public Select.
+
+-- 1. Automatically create both special editions buckets as Public buckets
+INSERT INTO storage.buckets (id, name, public) 
+VALUES 
+  ('special-editions-pdf', 'special-editions-pdf', true),
+  ('special-editions-thumbnails', 'special-editions-thumbnails', true)
+ON CONFLICT (id) DO NOTHING;
+-- 2. Allow Public View Access (anyone can download/view the PDFs and Images)
+CREATE POLICY "Anyone can view special editions media" 
+ON storage.objects FOR SELECT 
+TO public 
+USING (bucket_id IN ('special-editions-pdf', 'special-editions-thumbnails'));
+-- 3. Allow Admin Upload (Insert)
+CREATE POLICY "Admins can upload special editions media" 
+ON storage.objects FOR INSERT 
+TO authenticated 
+WITH CHECK (
+  bucket_id IN ('special-editions-pdf', 'special-editions-thumbnails') AND 
+  EXISTS (SELECT 1 FROM profiles WHERE profiles.user_id = auth.uid() AND profiles.role = 'admin')
+);
+-- 4. Allow Admin Updates
+CREATE POLICY "Admins can update special editions media" 
+ON storage.objects FOR UPDATE 
+TO authenticated 
+USING (
+  bucket_id IN ('special-editions-pdf', 'special-editions-thumbnails') AND 
+  EXISTS (SELECT 1 FROM profiles WHERE profiles.user_id = auth.uid() AND profiles.role = 'admin')
+);
+-- 5. Allow Admin Deletes
+CREATE POLICY "Admins can delete special editions media" 
+ON storage.objects FOR DELETE 
+TO authenticated 
+USING (
+  bucket_id IN ('special-editions-pdf', 'special-editions-thumbnails') AND 
+  EXISTS (SELECT 1 FROM profiles WHERE profiles.user_id = auth.uid() AND profiles.role = 'admin')
+);
+
+-- 1. Public View Access for Thumbnails
+CREATE POLICY "Anyone can view special edition thumbnails" 
+ON storage.objects FOR SELECT 
+TO public 
+USING (bucket_id = 'special-editions-thumbnails');
+
+-- 2. Admin Upload for Thumbnails
+CREATE POLICY "Admins can upload special edition thumbnails" 
+ON storage.objects FOR INSERT 
+TO authenticated 
+WITH CHECK (
+  bucket_id = 'special-editions-thumbnails' AND 
+  EXISTS (SELECT 1 FROM profiles WHERE profiles.user_id = auth.uid() AND profiles.role = 'admin')
+);
+
+-- 3. Admin Update for Thumbnails
+CREATE POLICY "Admins can update special edition thumbnails" 
+ON storage.objects FOR UPDATE 
+TO authenticated 
+USING (
+  bucket_id = 'special-editions-thumbnails' AND 
+  EXISTS (SELECT 1 FROM profiles WHERE profiles.user_id = auth.uid() AND profiles.role = 'admin')
+);
+
+-- 4. Admin Delete for Thumbnails
+CREATE POLICY "Admins can delete special edition thumbnails" 
+ON storage.objects FOR DELETE 
+TO authenticated 
+USING (
+  bucket_id = 'special-editions-thumbnails' AND 
+  EXISTS (SELECT 1 FROM profiles WHERE profiles.user_id = auth.uid() AND profiles.role = 'admin')
+);

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Moon, Sun, Globe, User, Menu, X } from "lucide-react";
+import { Moon, Sun, Globe, User, Menu, X, Star } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import AccountMenu from "../AccountMenu";
@@ -79,12 +79,19 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex gap-8 font-medium">
+          <nav className="hidden md:flex items-center gap-8 font-medium">
             <Link href="/" className={linkClass(isReadActive)}>
               Read
             </Link>
             <Link href="/archive" className={linkClass(pathname === "/archive")}>
               Archive
+            </Link>
+            <Link 
+              href="/special-editions" 
+              className={`flex items-center gap-1 group relative px-3 py-1.5 rounded-full border ${pathname.startsWith("/special-edition") ? "border-amber-400 bg-amber-100 text-amber-800 shadow-inner" : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"} transition-colors`}
+            >
+              <Star className={`w-4 h-4 ${pathname.startsWith("/special-edition") ? "fill-amber-600 text-amber-600" : "fill-amber-400 text-amber-400 group-hover:fill-amber-500 group-hover:text-amber-500"}`} />
+              <span className="text-sm font-semibold">Specials</span>
             </Link>
             <Link href="/about" className={linkClass(pathname === "/about")}>
               About
@@ -170,6 +177,19 @@ export default function Header() {
                 )}
               </Link>
               
+              <Link 
+                href="/special-editions" 
+                className={`flex items-center justify-between py-3 px-4 rounded-lg transition-colors border border-amber-100 ${pathname.startsWith("/special-edition") ? 'bg-amber-100 text-amber-800 font-semibold shadow-inner' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'}`}
+              >
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+                  <span className="font-medium">Special Editions</span>
+                </div>
+                {pathname.startsWith("/special-edition") && (
+                  <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                )}
+              </Link>
+
               <Link 
                 href="/about" 
                 className={`flex items-center justify-between py-3 px-4 rounded-lg transition-colors ${pathname === "/about" ? 'bg-red-50 text-red-700' : 'hover:bg-gray-50 text-gray-700'}`}
