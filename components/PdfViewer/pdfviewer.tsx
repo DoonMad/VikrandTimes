@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import { Menu, Share2, ZoomIn, ZoomOut, Maximize, Keyboard, ChevronLeft, ChevronRight, X, Grid, Star } from "lucide-react";
+import { Menu, Share2, ZoomIn, ZoomOut, Maximize, Keyboard, ChevronLeft, ChevronRight, X, Grid, Star, Expand, Shrink } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/providers/AuthProvider";
 
@@ -23,6 +23,7 @@ export default function Viewer({ url }: { url: string }) {
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [pdfWidth, setPdfWidth] = useState(800);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   // UI States
   const [isToolbarVisible, setIsToolbarVisible] = useState(true);
@@ -44,7 +45,14 @@ export default function Viewer({ url }: { url: string }) {
     
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     mql.addEventListener("change", handler);
-    return () => mql.removeEventListener("change", handler);
+    
+    const onFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    
+    return () => {
+      mql.removeEventListener("change", handler);
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+    };
   }, []);
 
   // 2. Auto-hide mobile toolbar logic
@@ -123,10 +131,27 @@ export default function Viewer({ url }: { url: string }) {
       if (e.key === "+" || e.key === "=") handleZoom(1);
       if (e.key === "-") handleZoom(-1);
       if (e.key.toLowerCase() === "f") {
+        toggleFullscreen();
+      }
+      if (e.key.toLowerCase() === "w") {
         setIsFit(true);
         setScale(calculateFitScale());
       }
       if (e.key.toLowerCase() === "s") handleShare();
+      
+      // Vertical Scroll
+      const scrollAmount = 50;
+      const scrollTarget = containerRef.current?.querySelector('.overflow-auto') as HTMLDivElement;
+      if (scrollTarget) {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          scrollTarget.scrollBy({ top: scrollAmount, behavior: "smooth" });
+        }
+        if (e.key === "ArrowUp") {
+          e.preventDefault();
+          scrollTarget.scrollBy({ top: -scrollAmount, behavior: "smooth" });
+        }
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -168,6 +193,20 @@ export default function Viewer({ url }: { url: string }) {
       }
     } else {
       alert("Sharing is not fully supported in this browser context.");
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.error("Error attempting to enable fullscreen:", err);
+        });
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
     }
   };
 
@@ -399,6 +438,10 @@ export default function Viewer({ url }: { url: string }) {
                   <button onClick={handleShare} className="flex items-center gap-3 w-full p-3 rounded-lg text-on-surface hover:bg-surface-container-low">
                     <Share2 size={18} /> Share Edition
                   </button>
+                  <button onClick={() => { toggleFullscreen(); setDrawerOpen(false); }} className="flex items-center gap-3 w-full p-3 rounded-lg text-on-surface hover:bg-surface-container-low">
+                    {isFullscreen ? <Shrink size={18} /> : <Expand size={18} />} 
+                    {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                  </button>
                 </div>
               </div>
             </div>
@@ -498,6 +541,14 @@ export default function Viewer({ url }: { url: string }) {
                 <Maximize size={16} className="hidden lg:block lg:mr-1.5" /> Fit
               </button>
               
+              <button
+                onClick={toggleFullscreen}
+                className="flex items-center justify-center px-3 py-1.5 border border-outline-variant/60 hover:bg-surface-container-low rounded text-sm font-medium text-on-surface"
+                title="Toggle Fullscreen"
+              >
+                {isFullscreen ? <Shrink size={16} /> : <Expand size={16} />}
+              </button>
+              
               <div className="w-px h-6 bg-outline-variant/50 mx-1"></div>
 
               <button
@@ -533,8 +584,16 @@ export default function Viewer({ url }: { url: string }) {
                           <span className="bg-surface-container-high px-2 py-1 rounded font-mono">+ / -</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-on-surface-variant">Fit to Width</span>
+                          <span className="text-on-surface-variant">Scroll Up / Down</span>
+                          <span className="bg-surface-container-high px-2 py-1 rounded font-mono">↑ / ↓</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-on-surface-variant">Fullscreen</span>
                           <span className="bg-surface-container-high px-2 py-1 rounded font-mono">F</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-on-surface-variant">Fit to Width</span>
+                          <span className="bg-surface-container-high px-2 py-1 rounded font-mono">W</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-on-surface-variant">Share</span>
