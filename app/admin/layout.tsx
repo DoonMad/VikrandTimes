@@ -26,7 +26,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface">
       <div className="flex">
         {/* Simple sidebar */}
         <AdminSidebar />

@@ -101,7 +101,7 @@ export default function AuthForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-surface flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Brand Header */}
         {/* <div className="text-center mb-8">
@@ -119,36 +119,36 @@ export default function AuthForm() {
         </div> */}
 
         {/* Auth Form Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+        <div className="bg-surface-container-lowest rounded-2xl shadow-xl border border-surface-container-high p-6 md:p-8">
           {/* Form Header */}
           <div className="mb-8">
-            <div className="flex border-b border-gray-200">
+            <div className="flex border-b border-surface-container-high">
               <button
                 disabled={loading}
                 onClick={() => setMode("signin")}
-                className={`cursor-pointer flex-1 py-3 text-sm font-medium transition-colors relative ${
+                className={`cursor-pointer flex-1 py-3 text-sm font-bold tracking-wide transition-colors relative ${
                   mode === "signin"
-                    ? "text-red-700"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "text-primary"
+                    : "text-on-surface-variant hover:text-on-surface"
                 }`}
               >
                 Sign In
                 {mode === "signin" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-700"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full"></div>
                 )}
               </button>
               <button
                 disabled={loading}
                 onClick={() => setMode("signup")}
-                className={`cursor-pointer flex-1 py-3 text-sm font-medium transition-colors relative ${
+                className={`cursor-pointer flex-1 py-3 text-sm font-bold tracking-wide transition-colors relative ${
                   mode === "signup"
-                    ? "text-red-700"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "text-primary"
+                    : "text-on-surface-variant hover:text-on-surface"
                 }`}
               >
                 Create Account
                 {mode === "signup" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-700"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full"></div>
                 )}
               </button>
             </div>
@@ -194,14 +194,14 @@ export default function AuthForm() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {/* Email Field */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-on-surface mb-2">
                   Email Address
                 </label>
                 <div className="relative">
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant">
                     <Mail size={18} />
                   </div>
                   <input
@@ -209,7 +209,7 @@ export default function AuthForm() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
+                    className="w-full pl-12 pr-4 py-3 bg-surface border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface"
                     required
                   />
                 </div>
@@ -217,11 +217,11 @@ export default function AuthForm() {
 
               {/* Password Field */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-on-surface mb-2">
                   Password
                 </label>
                 <div className="relative">
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant">
                     <Lock size={18} />
                   </div>
                   <input
@@ -229,13 +229,13 @@ export default function AuthForm() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
+                    className="w-full pl-12 pr-12 py-3 bg-surface border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant hover:text-on-surface cursor-pointer"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -247,11 +247,11 @@ export default function AuthForm() {
                 <>
                   {/* Full Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-on-surface mb-2">
                       Full Name
                     </label>
                     <div className="relative">
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant">
                         <User size={18} />
                       </div>
                       <input
@@ -259,7 +259,7 @@ export default function AuthForm() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="John Doe"
-                        className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
+                        className="w-full pl-12 pr-4 py-3 bg-surface border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface"
                         required
                       />
                     </div>
@@ -267,11 +267,11 @@ export default function AuthForm() {
 
                   {/* Phone Number */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-on-surface mb-2">
                       Phone Number (Optional)
                     </label>
                     <div className="relative">
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant">
                         <Phone size={18} />
                       </div>
                       <input
@@ -279,25 +279,25 @@ export default function AuthForm() {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="+91 98765 43210"
-                        className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
+                        className="w-full pl-12 pr-4 py-3 bg-surface border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface"
                       />
                     </div>
                   </div>
 
                   {/* Date of Birth */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-on-surface mb-2">
                       Date of Birth
                     </label>
                     <div className="relative">
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant">
                         <Calendar size={18} />
                       </div>
                       <input
                         type="date"
                         value={dob}
                         onChange={(e) => setDob(e.target.value)}
-                        className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all text-gray-700"
+                        className="w-full pl-12 pr-4 py-3 bg-surface border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface"
                         required
                       />
                     </div>
@@ -307,8 +307,8 @@ export default function AuthForm() {
 
               {/* Error Message */}
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-700">{error}</p>
+                <div className="p-3 bg-error-container border border-error/20 rounded-xl">
+                  <p className="text-sm font-medium text-error">{error}</p>
                 </div>
               )}
 
@@ -316,15 +316,15 @@ export default function AuthForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-3 px-4 rounded-lg font-medium transition-colors cursor-pointer ${
+                className={`w-full py-3.5 px-4 rounded-xl font-bold transition-all shadow-sm active:scale-95 cursor-pointer mt-4 ${
                   loading
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-red-700 hover:bg-red-800 text-white"
+                    ? "bg-surface-container-high text-on-surface-variant cursor-not-allowed"
+                    : "bg-primary hover:bg-primary-container hover:text-on-primary-container text-on-primary"
                 }`}
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                     Please wait...
                   </span>
                 ) : mode === "signin" ? (
@@ -337,15 +337,15 @@ export default function AuthForm() {
           )}
           {/* Divider */}
           <div className="my-6 flex items-center">
-            <div className="flex-1 border-t border-gray-200"></div>
-            <span className="px-3 text-sm text-gray-500">or</span>
-            <div className="flex-1 border-t border-gray-200"></div>
+            <div className="flex-1 border-t border-surface-container-high"></div>
+            <span className="px-3 text-sm font-medium text-on-surface-variant">or</span>
+            <div className="flex-1 border-t border-surface-container-high"></div>
           </div>
 
-          {/* Alternative Sign In Option*/}
+          {/* Alternative Sign In Option */}
           <button
             disabled
-            className="w-full py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-3 opacity-50 cursor-not-allowed"
+            className="w-full py-3.5 px-4 border border-outline-variant rounded-xl font-semibold text-on-surface hover:bg-surface-container-low transition-colors flex items-center justify-center gap-3 opacity-50 cursor-not-allowed"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -369,14 +369,14 @@ export default function AuthForm() {
           </button>
 
           {/* Footer Links */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+          <div className="mt-8 text-center">
+            <p className="text-sm font-medium text-on-surface-variant">
               {mode === "signin" ? (
                 <>
                   Don&apos;t have an account?{" "}
                   <button
                     onClick={() => setMode("signup")}
-                    className="text-red-700 hover:text-red-800 font-medium cursor-pointer"
+                    className="text-primary hover:underline font-bold cursor-pointer"
                   >
                     Create one now
                   </button>
@@ -386,20 +386,20 @@ export default function AuthForm() {
                   Already have an account?{" "}
                   <button
                     onClick={() => setMode("signin")}
-                    className="text-red-700 hover:text-red-800 font-medium cursor-pointer"
+                    className="text-primary hover:underline font-bold cursor-pointer"
                   >
                     Sign in here
                   </button>
                 </>
               )}
             </p>
-            <p className="mt-3 text-xs text-gray-500">
+            <p className="mt-4 text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">
               By continuing, you agree to our{" "}
-              <button className="underline hover:text-gray-700 cursor-pointer">
+              <button className="underline hover:text-on-surface cursor-pointer">
                 Terms
               </button>{" "}
               and{" "}
-              <button className="underline hover:text-gray-700 cursor-pointer">
+              <button className="underline hover:text-on-surface cursor-pointer">
                 Privacy Policy
               </button>
             </p>

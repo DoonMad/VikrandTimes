@@ -196,42 +196,42 @@ export default function SpecialEditionAdminForm() {
 
   return (
     <div className="place-items-center">
-      <form onSubmit={handleSubmit} className="max-w-xl space-y-5 bg-white border border-gray-200 rounded-lg p-6 w-full shadow-sm">
-        <h2 className="text-xl font-bold bg-linear-to-r from-amber-600 to-amber-800 bg-clip-text text-transparent inline-block">
+      <form onSubmit={handleSubmit} className="max-w-xl space-y-6 bg-surface-container-lowest border border-surface-container-high rounded-2xl p-8 w-full shadow-sm">
+        <h2 className="text-xl font-headline font-bold text-secondary inline-flex items-center gap-2">
           Publish Special Edition
         </h2>
 
         {success && (
-          <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 px-3 py-2 rounded">
-            <CheckCircle size={16} /> Special edition published successfully
+          <div className="flex items-center gap-2 text-sm text-(--color-tertiary) bg-tertiary/10 border border-tertiary/20 px-4 py-3 rounded-xl font-medium">
+            <CheckCircle size={18} /> Special edition published successfully
           </div>
         )}
         {error && (
-          <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 px-3 py-2 rounded">
-            <AlertCircle size={16} /> {error}
+          <div className="flex items-center gap-2 text-sm text-error bg-error-container border border-error/20 px-4 py-3 rounded-xl font-medium">
+            <AlertCircle size={18} /> {error}
           </div>
         )}
         {loading && statusMsg && (
-          <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded">
-            <Loader2 size={16} className="animate-spin" /> {statusMsg}
+          <div className="flex items-center gap-2 text-sm text-secondary bg-secondary-fixed/50 border border-secondary/20 px-4 py-3 rounded-xl font-medium">
+            <Loader2 size={18} className="animate-spin" /> {statusMsg}
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1 col-span-2">
-            <label className="text-sm font-medium text-gray-700">Edition Title</label>
+        <div className="grid grid-cols-2 gap-5">
+          <div className="space-y-2 col-span-2">
+            <label className="text-sm font-semibold text-on-surface uppercase tracking-wider">Edition Title</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Diwali Special 2026"
               required
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full rounded-xl border border-outline-variant px-4 py-3 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition-all"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">URL Slug</label>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-on-surface uppercase tracking-wider">URL Slug</label>
             <input
               type="text"
               value={slug}
@@ -240,68 +240,68 @@ export default function SpecialEditionAdminForm() {
                 isSlugEdited.current = true;
               }}
               required
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-gray-50"
+              className="w-full rounded-xl border border-outline-variant px-4 py-3 text-sm text-on-surface bg-surface-container-low focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition-all"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Chronological Date</label>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-on-surface uppercase tracking-wider">Chronological Date</label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full rounded-xl border border-outline-variant px-4 py-3 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition-all"
             />
           </div>
         </div>
 
         {/* File Uploads */}
-        <div className="space-y-4 pt-2">
+        <div className="space-y-5 pt-2">
           {/* PDF */}
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">PDF Document (Required)</label>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-on-surface uppercase tracking-wider">PDF Document (Required)</label>
             <input ref={fileInputRef} type="file" accept="application/pdf" onChange={(e) => handleFileChange(e, "pdf")} className="hidden" />
             <div className="flex items-center gap-3">
-              <button type="button" onClick={() => fileInputRef.current?.click()} className="inline-flex items-center gap-2 rounded border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 transition-colors">
-                <Upload size={16} /> Choose PDF
+              <button type="button" onClick={() => fileInputRef.current?.click()} className="inline-flex items-center gap-2 rounded-xl border border-secondary/20 bg-secondary-fixed/30 px-5 py-3 text-sm font-bold text-secondary hover:bg-secondary-fixed/50 transition-colors cursor-pointer">
+                <Upload size={18} /> Choose PDF
               </button>
               {file ? (
-                <div className="flex-1 flex items-center justify-between p-2 border border-green-200 bg-green-50 rounded">
-                  <div className="flex items-center gap-2"><FileText size={16} className="text-green-600"/><span className="text-sm font-medium max-w-[200px] truncate">{file.name}</span></div>
-                  <button type="button" onClick={() => clearFile("pdf")}><X size={16} className="text-gray-400 hover:text-gray-600"/></button>
+                <div className="flex-1 flex items-center justify-between p-3 border border-secondary/20 bg-secondary-fixed/30 rounded-xl">
+                  <div className="flex items-center gap-3"><FileText size={18} className="text-secondary"/><span className="text-sm font-semibold text-on-surface max-w-[150px] truncate">{file.name}</span></div>
+                  <button type="button" onClick={() => clearFile("pdf")} className="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high hover:text-error transition-colors cursor-pointer"><X size={16} /></button>
                 </div>
-              ) : <div className="flex-1 text-sm text-gray-500 px-3 py-2 border border-dashed border-gray-300 rounded bg-gray-50">No PDF selected</div>}
+              ) : <div className="flex-1 text-sm font-medium text-on-surface-variant px-4 py-3 border border-dashed border-outline-variant rounded-xl bg-surface-container-lowest flex items-center justify-center">No PDF selected</div>}
             </div>
           </div>
 
           {/* Thumbnail */}
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Cover Thumbnail Image (Optional)</label>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-on-surface uppercase tracking-wider">Cover Thumbnail Image (Optional)</label>
             <input ref={thumbnailInputRef} type="file" accept="image/*" onChange={(e) => handleFileChange(e, "image")} className="hidden" />
             <div className="flex items-center gap-3">
-              <button type="button" onClick={() => thumbnailInputRef.current?.click()} className="inline-flex items-center gap-2 rounded border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                <ImageIcon size={16} /> Choose Image
+              <button type="button" onClick={() => thumbnailInputRef.current?.click()} className="inline-flex items-center gap-2 rounded-xl border border-surface-container-high bg-surface-container-low px-5 py-3 text-sm font-medium text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer">
+                <ImageIcon size={18} /> Choose Image
               </button>
               {thumbnail ? (
-                <div className="flex-1 flex items-center justify-between p-2 border border-blue-200 bg-blue-50 rounded">
-                  <div className="flex items-center gap-2"><ImageIcon size={16} className="text-blue-600"/><span className="text-sm font-medium max-w-[200px] truncate">{thumbnail.name}</span></div>
-                  <button type="button" onClick={() => clearFile("image")}><X size={16} className="text-gray-400 hover:text-gray-600"/></button>
+                <div className="flex-1 flex items-center justify-between p-3 border border-primary/20 bg-primary-fixed/30 rounded-xl">
+                  <div className="flex items-center gap-3"><ImageIcon size={18} className="text-primary"/><span className="text-sm font-semibold text-on-surface max-w-[150px] truncate">{thumbnail.name}</span></div>
+                  <button type="button" onClick={() => clearFile("image")} className="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high hover:text-error transition-colors cursor-pointer"><X size={16} /></button>
                 </div>
-              ) : <div className="flex-1 text-sm text-gray-500 px-3 py-2 border border-dashed border-gray-300 rounded bg-gray-50">No image selected</div>}
+              ) : <div className="flex-1 text-sm font-medium text-on-surface-variant px-4 py-3 border border-dashed border-outline-variant rounded-xl bg-surface-container-lowest flex items-center justify-center">No image selected</div>}
             </div>
           </div>
         </div>
 
-        <div className="flex gap-3 pt-4 border-t border-gray-100">
+        <div className="flex gap-3 pt-6 border-t border-surface-container-high mt-4">
           <button
             type="submit"
             disabled={loading || !title || !slug || !date || !file}
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-5 py-3 text-sm font-bold text-on-secondary hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all shadow-sm active:scale-95"
           >
-            <Upload size={16} /> {loading ? "Publishing Special..." : "Publish Special Edition"}
+            <Upload size={18} /> {loading ? "Publishing Special..." : "Publish Special Edition"}
           </button>
-          <button type="button" onClick={clearForm} disabled={loading} className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+          <button type="button" onClick={clearForm} disabled={loading} className="rounded-xl border border-surface-container-high bg-surface-container-lowest px-5 py-3 text-sm font-semibold text-on-surface hover:bg-surface-container-low cursor-pointer transition-colors">
             Clear
           </button>
         </div>

@@ -37,15 +37,15 @@ export default function AccountMenu() {
   const displayName = user.user_metadata?.name || user.email?.split('@')[0] || "Account";
 
   return (
-    <div className="relative z-100" ref={dropdownRef}>
+    <div className="relative z-200" ref={dropdownRef}>
       {/* User Profile Button */}
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 border border-gray-200 transition-colors cursor-pointer"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-surface-container-low border border-surface-container-high transition-colors cursor-pointer"
         aria-label="Account menu"
       >
-        <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-          <User size={16} className="text-red-700" />
+        <div className="w-8 h-8 bg-primary-fixed rounded-full flex items-center justify-center">
+          <User size={16} className="text-primary-container" />
         </div>
         <div className="hidden md:block text-left">
           <p className="text-sm font-medium text-gray-900 truncate max-w-[120px]">
@@ -61,7 +61,7 @@ export default function AccountMenu() {
 
       {/* Dropdown Menu */}
       {open && (
-        <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+        <div className="absolute right-0 mt-2 w-56 bg-surface-container-lowest rounded-xl shadow-lg border border-surface-container-high py-2 z-200">
           {/* User Info */}
           <div className="px-4 py-3 border-b border-gray-100">
             <p className="text-sm font-medium text-gray-900 truncate">

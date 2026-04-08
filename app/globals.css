@@ -1,26 +1,249 @@
 @import "tailwindcss";
 
-/* :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* =============================================
+   VIKRAND TIMES — DESIGN SYSTEM v2.0
+   Based on Material Design 3 tonal palette
+   ============================================= */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Primary — Rich Red (brand ink) */
+  --color-primary: #93000b;
+  --color-primary-container: #b91c1c;
+  --color-primary-fixed: #ffdad6;
+  --color-primary-fixed-dim: #ffb4ab;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #ffcdc7;
+
+  /* Secondary — Warm Amber (special editions) */
+  --color-secondary: #904d00;
+  --color-secondary-container: #fe932c;
+  --color-secondary-fixed: #ffdcc3;
+  --color-secondary-fixed-dim: #ffb77d;
+  --color-on-secondary: #ffffff;
+
+  /* Surface & Background — Cool-tinted paper */
+  --color-surface: #f9f9ff;
+  --color-surface-bright: #f9f9ff;
+  --color-surface-dim: #d3daef;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f1f3ff;
+  --color-surface-container: #e9edff;
+  --color-surface-container-high: #e1e8fd;
+  --color-surface-container-highest: #dce2f7;
+  --color-background: #f9f9ff;
+
+  /* On-Surface — Text colors (NEVER use pure black) */
+  --color-on-surface: #141b2b;
+  --color-on-surface-variant: #5b403d;
+  --color-on-background: #141b2b;
+
+  /* Outline & Borders */
+  --color-outline: #8f6f6c;
+  --color-outline-variant: #e4beb9;
+
+  /* Inverse — For floating toolbar pill */
+  --color-inverse-surface: #293040;
+  --color-inverse-on-surface: #edf0ff;
+  --color-inverse-primary: #ffb4ab;
+
+  /* Error */
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+
+  /* Tertiary */
+  --color-tertiary: #00497f;
+
+  /* Font families */
+  --font-headline: "Newsreader", serif;
+  --font-body: "Inter", "Noto Sans Devanagari", sans-serif;
+  --font-label: "Inter", "Noto Sans Devanagari", sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* =============================================
+   BASE STYLES
+   ============================================= */
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-on-surface);
+  background-color: var(--color-surface);
+  overscroll-behavior-y: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Devanagari text needs more line-height for matras */
+:lang(mr),
+.font-devanagari {
+  line-height: 1.6;
+}
+
+/* =============================================
+   CUSTOM SCROLLBAR — Thin, editorial style
+   ============================================= */
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary-fixed-dim);
+  border-radius: 4px;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary-fixed-dim) transparent;
+}
+
+/* =============================================
+   SELECTION HIGHLIGHT
+   ============================================= */
+
+::selection {
+  background-color: var(--color-primary-fixed);
+  color: var(--color-primary);
+}
+
+/* =============================================
+   PAPER GRAIN TEXTURE — for PDF reader pages
+   ============================================= */
+
+.paper-grain {
+  background-color: #fff;
+  /* Subtle paper texture could be added here */
+}
+
+/* =============================================
+   READING PROGRESS BAR
+   ============================================= */
+
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background-color: var(--color-primary);
+  z-index: 100;
+  transition: width 150ms ease-out;
+}
+
+/* =============================================
+   FLOATING TOOLBAR — auto-hide animation
+   ============================================= */
+
+.floating-toolbar {
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.floating-toolbar.hidden-toolbar {
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
+}
+
+/* =============================================
+   SLIDE-IN DRAWER
+   ============================================= */
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+
+.drawer-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  background-color: var(--color-surface-container-lowest);
+  z-index: 210;
+  transform: translateX(-100%);
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+}
+
+.drawer-panel.open {
+  transform: translateX(0);
+}
+
+/* =============================================
+   UTILITY: Ghost Border
+   Per design system: no hard 1px borders,
+   use 15% opacity outline-variant instead
+   ============================================= */
+
+.ghost-border {
+  border: 1px solid color-mix(in srgb, var(--color-outline-variant) 15%, transparent);
+}
+
+/* =============================================
+   BOTTOM TAB BAR (mobile navigation)
+   ============================================= */
+
+.bottom-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background-color: var(--color-surface-container-lowest);
+  border-top: 1px solid var(--color-surface-container-high);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Add safe area padding for bottom tab bar */
+.has-tab-bar {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+}
+
+/* =============================================
+   SPECIALS GLOW — Amber pulse on the Specials link
+   ============================================= */
+
+@keyframes specials-glow {
+  0%, 100% {
+    text-shadow: 0 0 4px rgba(217, 119, 6, 0.3), 0 0 8px rgba(217, 119, 6, 0.15);
+  }
+  50% {
+    text-shadow: 0 0 8px rgba(217, 119, 6, 0.5), 0 0 16px rgba(217, 119, 6, 0.25);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-} */
+.specials-glow {
+  animation: specials-glow 2.5s ease-in-out infinite;
+}
+
+/* Tab bar icon glow variant */
+@keyframes specials-icon-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 3px rgba(217, 119, 6, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(217, 119, 6, 0.6));
+  }
+}
+
+.specials-icon-glow {
+  animation: specials-icon-glow 2.5s ease-in-out infinite;
+}

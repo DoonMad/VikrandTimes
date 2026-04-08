@@ -45,70 +45,70 @@ export default async function MessagesPage() {
     .eq("responded", true);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-red-100 rounded-lg">
-              <Mail className="w-6 h-6 text-red-700" />
+            <div className="p-3 bg-primary-fixed rounded-xl shadow-sm">
+              <Mail className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Contact Messages</h1>
-              <p className="text-gray-600">Manage reader inquiries and feedback</p>
+              <h1 className="text-3xl font-headline font-bold text-on-surface">Contact Messages</h1>
+              <p className="text-on-surface-variant mt-1 font-medium">Manage reader inquiries and feedback</p>
             </div>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="bg-surface-container-lowest border border-surface-container-high rounded-xl p-5 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Messages</p>
-                  <p className="text-2xl font-bold text-gray-900">{total || 0}</p>
+                  <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Total Messages</p>
+                  <p className="text-3xl font-bold text-on-surface mt-1">{total || 0}</p>
                 </div>
-                <Mail className="w-5 h-5 text-gray-400" />
+                <Mail className="w-6 h-6 text-on-surface-variant opacity-50" />
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="bg-surface-container-lowest border border-surface-container-high rounded-xl p-5 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Unread</p>
-                  <p className="text-2xl font-bold text-red-700">{unread || 0}</p>
+                  <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Unread</p>
+                  <p className="text-3xl font-bold text-error mt-1">{unread || 0}</p>
                 </div>
-                <MessageSquare className="w-5 h-5 text-gray-400" />
+                <MessageSquare className="w-6 h-6 text-on-surface-variant opacity-50" />
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="bg-surface-container-lowest border border-surface-container-high rounded-xl p-5 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Responded</p>
-                  <p className="text-2xl font-bold text-green-700">{responded || 0}</p>
+                  <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Responded</p>
+                  <p className="text-3xl font-bold text-[green] mt-1">{responded || 0}</p>
                 </div>
-                <CheckCircle className="w-5 h-5 text-gray-400" />
+                <CheckCircle className="w-6 h-6 text-on-surface-variant opacity-50" />
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="bg-surface-container-lowest border border-surface-container-high rounded-xl p-5 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Today</p>
-                  <p className="text-2xl font-bold text-blue-700">
+                  <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Today</p>
+                  <p className="text-3xl font-bold text-primary mt-1">
                     {messages?.filter(m => 
                       new Date(m.created_at).toDateString() === new Date().toDateString()
                     ).length || 0}
                   </p>
                 </div>
-                <Clock className="w-5 h-5 text-gray-400" />
+                <Clock className="w-6 h-6 text-on-surface-variant opacity-50" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Messages Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-surface-container-lowest rounded-2xl shadow-sm border border-surface-container-high overflow-hidden">
           <MessagesTable initialMessages={messages || []} />
         </div>
       </div>

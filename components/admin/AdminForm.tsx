@@ -114,31 +114,31 @@ export default function AdminForm() {
     <div className="place-items-center">
       <form
         onSubmit={handleSubmit}
-        className="max-w-md space-y-5 bg-white border border-gray-200 rounded-lg p-6 w-full"
+        className="max-w-md space-y-6 bg-surface-container-lowest border border-surface-container-high rounded-2xl p-8 w-full shadow-sm"
       >
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-xl font-headline font-bold text-on-surface">
           Publish new edition
         </h2>
 
         {/* Success */}
         {success && (
-          <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 px-3 py-2 rounded">
-            <CheckCircle size={16} />
+          <div className="flex items-center gap-2 text-sm text-(--color-tertiary) bg-tertiary/10 border border-tertiary/20 px-4 py-3 rounded-xl font-medium">
+            <CheckCircle size={18} />
             Edition published successfully
           </div>
         )}
 
         {/* Error */}
         {error && (
-          <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 px-3 py-2 rounded">
-            <AlertCircle size={16} />
+          <div className="flex items-center gap-2 text-sm text-error bg-error-container border border-error/20 px-4 py-3 rounded-xl font-medium">
+            <AlertCircle size={18} />
             {error}
           </div>
         )}
 
         {/* Date */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-on-surface uppercase tracking-wider">
             Publication date
           </label>
           <input
@@ -146,13 +146,13 @@ export default function AdminForm() {
             value={date}
             onChange={(e) => setDate(e.target.value)}
             required
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+            className="w-full rounded-xl border border-outline-variant px-4 py-3 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
           />
         </div>
 
         {/* File Upload - Custom Styled */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">PDF file</label>
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-on-surface uppercase tracking-wider">PDF file</label>
 
           <div className="space-y-3">
             {/* Hidden file input */}
@@ -169,21 +169,21 @@ export default function AdminForm() {
               <button
                 type="button"
                 onClick={handleFileSelect}
-                className="inline-flex items-center gap-2 rounded border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors"
+                className="inline-flex items-center gap-2 rounded-xl border border-surface-container-high bg-surface-container-low px-5 py-3 text-sm font-medium text-on-surface hover:bg-surface-container-high cursor-pointer transition-colors"
               >
-                <Upload size={16} />
+                <Upload size={18} />
                 Choose PDF
               </button>
 
               {file ? (
-                <div className="flex-1 flex items-center justify-between gap-3 p-3 border border-green-200 bg-green-50 rounded">
-                  <div className="flex items-center gap-2">
-                    <FileText size={16} className="text-green-600" />
+                <div className="flex-1 flex items-center justify-between gap-3 p-3 border border-primary/20 bg-primary-fixed/30 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <FileText size={18} className="text-primary" />
                     <div>
-                      <p className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
+                      <p className="text-sm font-semibold text-on-surface truncate max-w-[150px]">
                         {file.name}
                       </p>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-on-surface-variant font-medium mt-0.5">
                         {(file.size / 1024 / 1024).toFixed(1)} MB
                       </p>
                     </div>
@@ -191,14 +191,14 @@ export default function AdminForm() {
                   <button
                     type="button"
                     onClick={clearFile}
-                    className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                    className="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high hover:text-error transition-colors cursor-pointer"
                     aria-label="Remove file"
                   >
                     <X size={16} />
                   </button>
                 </div>
               ) : (
-                <div className="flex-1 text-sm text-gray-500 px-3 py-2 border border-dashed border-gray-300 rounded bg-gray-50">
+                <div className="flex-1 text-sm text-on-surface-variant font-medium px-4 py-3 border border-dashed border-outline-variant rounded-xl bg-surface-container-lowest flex items-center justify-center">
                   No file chosen
                 </div>
               )}
@@ -207,20 +207,20 @@ export default function AdminForm() {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-3 pt-4 border-t border-surface-container-high mt-2">
           <button
             type="submit"
             disabled={loading || !date || !file}
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-on-primary hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all shadow-sm active:scale-95"
           >
-            <Upload size={16} />
+            <Upload size={18} />
             {loading ? "Publishing…" : "Publish"}
           </button>
 
           <button
             type="button"
             onClick={clearForm}
-            className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+            className="rounded-xl border border-surface-container-high bg-surface-container-lowest px-5 py-3 text-sm font-semibold text-on-surface hover:bg-surface-container-low cursor-pointer transition-colors"
             disabled={loading}
           >
             Clear

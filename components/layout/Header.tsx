@@ -1,265 +1,186 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { Moon, Sun, Globe, User, Menu, X, Star } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { Search, Star, X, Menu } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
-import AccountMenu from "../AccountMenu";
-import { usePathname, useRouter } from "next/navigation";
+import AccountMenu from "@/components/AccountMenu";
+import { useState } from "react";
+
+const navLinks = [
+  { name: "Read", href: "/" },
+  { name: "Archive", href: "/archive" },
+  { name: "Specials", href: "/special-editions", icon: Star, isSpecial: true },
+  { name: "About", href: "/about" },
+  { name: "Contact", href: "/contact" },
+];
 
 export default function Header() {
-  // const [dark, setDark] = useState(false);
-  // const [lang, setLang] = useState<"mr" | "en">("mr");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const user = useAuth();
   const pathname = usePathname();
-  // const router = useRouter();
-  // const prevPathnameRef = useRef(pathname);
+  const user = useAuth();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const isReadActive = pathname === "/" || pathname.startsWith('/edition/');
-
-  const linkClass = (active: boolean) =>
-    active
-      ? "text-red-700 font-semibold"
-      : "text-gray-700 hover:text-red-700";
-
-  // Close mobile menu when route changes
-  // useEffect(() => {
-  //   if (prevPathnameRef.current !== pathname) {
-  //     setIsMobileMenuOpen(false);
-  //     prevPathnameRef.current = pathname;
-  //   }
-  // }, [pathname]);
-
-  useEffect(() => {
-    return () => {
-      setIsMobileMenuOpen(false);
-    };
-  }, [pathname]);
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
+  const isActiveLink = (href: string) => {
+    if (href === "/") {
+      return pathname === "/" || pathname.startsWith("/edition/");
     }
-    
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isMobileMenuOpen]);
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(prev => !prev);
+    return pathname.startsWith(href);
   };
 
   return (
-    <header className="border-b border-gray-200 bg-white">
-      <div className="max-w-6xl mx-auto px-4 py-3">
-        {/* Top Row: Logo + Mobile Menu Button */}
-        <div className="flex items-center justify-between">
-          {/* Brand */}
-          <Link href="/" className="flex flex-col items-center cursor-pointer">
-            <div className="relative h-10 w-40">
-              <Image
-                src="/logo.png"
-                alt="Vikrand Times"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-            <div className="hidden sm:block leading-tight">
-              <p className="text-xs text-gray-500">
-                विकास क्रांती दल
-              </p>
-            </div>
+    <>
+      {/* ===== DESKTOP HEADER ===== */}
+      <header className="sticky top-0 z-50 bg-surface-container-lowest/95 backdrop-blur-md border-b border-surface-container-high h-14">
+        <div className="max-w-6xl mx-auto px-4 h-full flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo.png"
+              alt="विक्रांद टाइम्स"
+              width={140}
+              height={32}
+              className="h-8 w-auto"
+              priority
+            />
+            <span className="hidden sm:block text-[11px] text-on-surface-variant leading-tight">
+              विकास क्रांती दल
+            </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8 font-medium">
-            <Link href="/" className={linkClass(isReadActive)}>
-              Read
-            </Link>
-            <Link href="/archive" className={linkClass(pathname === "/archive")}>
-              Archive
-            </Link>
-            <Link 
-              href="/special-editions" 
-              className={`flex items-center gap-1 group relative px-3 py-1.5 rounded-full border ${pathname.startsWith("/special-edition") ? "border-amber-400 bg-amber-100 text-amber-800 shadow-inner" : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"} transition-colors`}
-            >
-              <Star className={`w-4 h-4 ${pathname.startsWith("/special-edition") ? "fill-amber-600 text-amber-600" : "fill-amber-400 text-amber-400 group-hover:fill-amber-500 group-hover:text-amber-500"}`} />
-              <span className="text-sm font-semibold">Specials</span>
-            </Link>
-            <Link href="/about" className={linkClass(pathname === "/about")}>
-              About
-            </Link>
-            <Link href="/contact" className={linkClass(pathname === "/contact")}>
-              Contact
-            </Link>
+          {/* Desktop Navigation — hidden on mobile */}
+          <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
+            {navLinks.map((link) => {
+              const active = isActiveLink(link.href);
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`relative text-sm font-medium transition-colors flex items-center gap-1 py-1 ${
+                    active
+                      ? link.isSpecial
+                        ? "text-secondary specials-glow"
+                        : "text-primary-container font-semibold"
+                      : link.isSpecial
+                      ? "text-secondary specials-glow hover:text-secondary-container"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  {link.icon && (
+                    <link.icon
+                      size={14}
+                      className={active ? "text-secondary fill-secondary" : "text-secondary"}
+                    />
+                  )}
+                  {link.name}
+                  {active && (
+                    <span className="absolute -bottom-px left-0 right-0 h-0.5 bg-primary-container rounded-full" />
+                  )}
+                </Link>
+              );
+            })}
           </nav>
 
-          {/* Right Section: Utilities + Mobile Menu Button */}
-          <div className="flex items-center gap-3">
-            {/* Language Toggle (Desktop) */}
-            {/* <div className="hidden sm:flex items-center">
-              <button
-                onClick={() => setLang(l => (l === "mr" ? "en" : "mr"))}
-                className="p-2 rounded hover:bg-gray-100 text-gray-700 cursor-pointer"
-                title="Toggle Language"
+          {/* Right: Search + Auth */}
+          <div className="hidden md:flex items-center gap-3 my-3">
+            {user ? (
+              <AccountMenu />
+            ) : (
+              <Link
+                href="/auth"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-on-primary bg-primary-container rounded-xl hover:bg-primary transition-colors"
               >
-                <Globe size={18} />
-              </button>
-              <span className="text-sm text-gray-700 ml-1 hidden lg:inline">
-                {lang.toUpperCase()}
-              </span>
-            </div> */}
+                Sign In
+              </Link>
+            )}
+          </div>
 
-            {/* Theme Toggle (Desktop) */}
-            {/* <button
-              onClick={() => setDark(d => !d)}
-              className="hidden sm:block p-2 rounded hover:bg-gray-100 text-gray-700 cursor-pointer"
-              title="Toggle Theme"
-            >
-              {dark ? <Sun size={18} /> : <Moon size={18} />}
-            </button> */}
-
-            {/* Sign In / Account */}
-            <div className="hidden sm:block">
-              {user === null ? (
-                <Link
-                  href="/auth"
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 border border-gray-200 transition-colors"
-                >
-                  <User size={16} className="text-gray-600" />
-                  <span className="hidden lg:inline text-sm font-medium">Sign In</span>
-                </Link>
-              ) : (
-                <AccountMenu />
-              )}
-            </div>
-
-            {/* Mobile Menu Button */}
+          {/* Mobile: Hamburger + Search + Sign In */}
+          <div className="flex md:hidden items-center gap-2">
+            {!user && (
+              <Link
+                href="/auth"
+                className="px-3 py-1.5 text-xs font-medium text-on-primary bg-primary-container rounded-lg"
+              >
+                Sign In
+              </Link>
+            )}
+            {user && <AccountMenu />}
             <button
-              onClick={toggleMobileMenu}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-700"
-              aria-label="Toggle menu"
+              onClick={() => setDrawerOpen(true)}
+              className="p-2 text-on-surface-variant hover:text-on-surface transition-colors"
+              aria-label="Open menu"
             >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              <Menu size={24} />
             </button>
           </div>
         </div>
+      </header>
 
-        {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 border-t border-gray-200 pt-4 animate-in fade-in slide-in-from-top-2">
-            {/* Navigation Links */}
-            <nav className="flex flex-col space-y-3 mb-6">
-              <Link 
-                href="/" 
-                className={`flex items-center justify-between py-3 px-4 rounded-lg transition-colors ${isReadActive ? 'bg-red-50 text-red-700' : 'hover:bg-gray-50 text-gray-700'}`}
-              >
-                <span className="font-medium">Read Latest</span>
-                {isReadActive && (
-                  <div className="w-2 h-2 bg-red-700 rounded-full"></div>
-                )}
-              </Link>
-              
-              <Link 
-                href="/archive" 
-                className={`flex items-center justify-between py-3 px-4 rounded-lg transition-colors ${pathname === "/archive" ? 'bg-red-50 text-red-700' : 'hover:bg-gray-50 text-gray-700'}`}
-              >
-                <span className="font-medium">Archive</span>
-                {pathname === "/archive" && (
-                  <div className="w-2 h-2 bg-red-700 rounded-full"></div>
-                )}
-              </Link>
-              
-              <Link 
-                href="/special-editions" 
-                className={`flex items-center justify-between py-3 px-4 rounded-lg transition-colors border border-amber-100 ${pathname.startsWith("/special-edition") ? 'bg-amber-100 text-amber-800 font-semibold shadow-inner' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'}`}
-              >
-                <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                  <span className="font-medium">Special Editions</span>
-                </div>
-                {pathname.startsWith("/special-edition") && (
-                  <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                )}
-              </Link>
+      {/* ===== MOBILE DRAWER ===== */}
+      {/* Overlay */}
+      <div
+        className={`drawer-overlay ${drawerOpen ? "open" : ""}`}
+        onClick={() => setDrawerOpen(false)}
+      />
 
-              <Link 
-                href="/about" 
-                className={`flex items-center justify-between py-3 px-4 rounded-lg transition-colors ${pathname === "/about" ? 'bg-red-50 text-red-700' : 'hover:bg-gray-50 text-gray-700'}`}
+      {/* Drawer Panel */}
+      <div className={`drawer-panel ${drawerOpen ? "open" : ""}`}>
+        {/* Drawer Header */}
+        <div className="flex items-center justify-between px-4 h-14 border-b border-surface-container-high">
+          <Image
+            src="/logo.png"
+            alt="विक्रांद टाइम्स"
+            width={100}
+            height={24}
+            className="h-6 w-auto"
+          />
+          <button
+            onClick={() => setDrawerOpen(false)}
+            className="p-2 text-on-surface-variant hover:text-on-surface"
+            aria-label="Close menu"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Drawer Navigation */}
+        <nav className="py-2" aria-label="Mobile navigation drawer">
+          {navLinks.map((link) => {
+            const active = isActiveLink(link.href);
+            return (
+              <Link
+                key={link.name}
+                href={link.href}
+                onClick={() => setDrawerOpen(false)}
+                className={`flex items-center gap-3 px-5 h-[52px] text-sm font-medium transition-colors ${
+                  active
+                    ? link.isSpecial
+                      ? "text-secondary bg-secondary-fixed/30 specials-glow"
+                      : "text-primary-container bg-primary-fixed/30"
+                    : link.isSpecial
+                    ? "text-secondary hover:bg-secondary-fixed/10 specials-glow"
+                    : "text-on-surface hover:bg-surface-container-low"
+                }`}
               >
-                <span className="font-medium">About Us</span>
-                {pathname === "/about" && (
-                  <div className="w-2 h-2 bg-red-700 rounded-full"></div>
+                {link.icon && <link.icon size={18} />}
+                {!link.icon && <span className="w-[18px]" />}
+                {link.name}
+                {active && !link.isSpecial && (
+                  <span className="ml-auto w-2 h-2 rounded-full bg-primary-container" />
                 )}
               </Link>
-              
-              <Link 
-                href="/contact" 
-                className={`flex items-center justify-between py-3 px-4 rounded-lg transition-colors ${pathname === "/contact" ? 'bg-red-50 text-red-700' : 'hover:bg-gray-50 text-gray-700'}`}
-              >
-                <span className="font-medium">Contact</span>
-                {pathname === "/contact" && (
-                  <div className="w-2 h-2 bg-red-700 rounded-full"></div>
-                )}
-              </Link>
-            </nav>
+            );
+          })}
+        </nav>
 
-            {/* Mobile Auth Section */}
-            <div className="pt-4 border-t border-gray-200">
-              {user === null ? (
-                <Link
-                  href="/auth"
-                  className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-red-700 text-white font-medium rounded-lg hover:bg-red-800 transition-colors"
-                >
-                  <User size={18} />
-                  <span>Sign In to Your Account</span>
-                </Link>
-              ) : (
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                      <User size={18} className="text-red-700" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900 text-sm">
-                        {user.user_metadata?.name || user.email?.split('@')[0]}
-                      </p>
-                      <p className="text-xs text-gray-600">My Account</p>
-                    </div>
-                  </div>
-                  <AccountMenu />
-                </div>
-              )}
-            </div>
-
-            {/* Optional: Theme/Language toggles for mobile */}
-            {/* <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-              <button
-                onClick={() => setLang(l => (l === "mr" ? "en" : "mr"))}
-                className="flex items-center gap-2 text-gray-700"
-              >
-                <Globe size={18} />
-                <span className="text-sm">{lang === "mr" ? "मराठी" : "English"}</span>
-              </button>
-              
-              <button
-                onClick={() => setDark(d => !d)}
-                className="flex items-center gap-2 text-gray-700"
-              >
-                {dark ? <Sun size={18} /> : <Moon size={18} />}
-                <span className="text-sm">{dark ? "Light" : "Dark"}</span>
-              </button>
-            </div> */}
-          </div>
-        )}
+        {/* Drawer Footer */}
+        <div className="absolute bottom-0 left-0 right-0 px-5 py-4 border-t border-surface-container-high">
+          <p className="text-[11px] text-on-surface-variant text-center">
+            © {new Date().getFullYear()} Vikrand Times
+          </p>
+        </div>
       </div>
-    </header>
+    </>
   );
 }

@@ -29,12 +29,12 @@ export default function AdminSidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen p-4">
-      <div className="mb-8">
-        <h2 className="text-lg font-bold text-gray-900">Admin</h2>
+    <aside className="w-64 bg-surface-container-lowest border-r border-surface-container-high min-h-screen p-4 flex flex-col">
+      <div className="mb-8 px-2">
+        <h2 className="text-2xl font-headline font-bold text-primary">Admin Portal</h2>
       </div>
       
-      <nav className="space-y-2">
+      <nav className="space-y-1 flex-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -43,25 +43,25 @@ export default function AdminSidebar() {
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-red-100 text-red-700"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-primary-container text-on-primary-container shadow-sm"
+                  : "text-on-surface hover:bg-surface-container-low"
               }`}
             >
-              <Icon size={18} />
+              <Icon size={20} />
               <span>{item.name}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="mt-8 pt-4 border-t border-gray-200">
+      <div className="mt-8 pt-4 border-t border-surface-container-high">
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 text-gray-700 hover:text-red-700 w-full px-3 py-2"
+          className="flex items-center gap-3 text-on-surface-variant hover:text-error hover:bg-error-container/30 w-full px-4 py-3 rounded-xl text-sm font-medium transition-colors cursor-pointer"
         >
-          <LogOut size={18} />
+          <LogOut size={20} />
           <span>Sign Out</span>
         </button>
       </div>

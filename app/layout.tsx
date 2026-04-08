@@ -1,14 +1,13 @@
-import type { Metadata } from "next";
-import { Noto_Sans_Devanagari, Inter } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Noto_Sans_Devanagari, Inter, Newsreader } from "next/font/google";
 import "./globals.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
-import Header from "@/components/layout/Header";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { createClient } from "@/lib/supabase/server";
-import Footer from "@/components/layout/Footer";
 import { Analytics } from '@vercel/analytics/next';
 import Script from "next/script";
+import ConditionalLayout from "@/components/layout/ConditionalLayout";
 
 // Marathi font
 const marathi = Noto_Sans_Devanagari({
@@ -17,11 +16,22 @@ const marathi = Noto_Sans_Devanagari({
   weight: ["400", "500", "600", "700"],
 });
 
-// English font for fallback
+// English font for body/labels
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
+
+// Headline/Display font — editorial serif
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
+  subsets: ["latin"],
+  weight: ["400", "700", "800"],
+});
+
+export const viewport: Viewport = {
+  themeColor: "#93000b",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.vikrandtimes.com"),
@@ -42,7 +52,7 @@ export const metadata: Metadata = {
     description: "Vikrand Times is a Marathi weekly newspaper covering local news, public interest stories, and community issues.",
     images: [
       {
-        url: "/og-image.webp", // You can customize this later
+        url: "/og-image.webp",
         width: 1200,
         height: 630,
         alt: "Vikrand Times Default Image",
@@ -71,7 +81,7 @@ export default async function RootLayout({
   const {data: {user}} = await supabase.auth.getUser();
 
   return (
-    <html lang="mr" className={`${marathi.variable} ${inter.variable}`}>
+    <html lang="mr" className={`${marathi.variable} ${inter.variable} ${newsreader.variable}`}>
       <head>
         {/* Umami Analytics */}
         <Script
@@ -81,10 +91,10 @@ export default async function RootLayout({
         />
       </head>
       <AuthProvider user={user}>
-        <body className="font-sans antialiased overflow-x-hidden bg-white">
-          <Header />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
+        <body className="font-body antialiased overflow-x-hidden bg-surface text-on-surface">
+          <ConditionalLayout>
+            {children}
+          </ConditionalLayout>
         </body>
       </AuthProvider>
     </html>

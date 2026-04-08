@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Star, ChevronRight, Newspaper } from "lucide-react";
+import { Star, ChevronRight, Newspaper, Calendar } from "lucide-react";
 import Image from "next/image";
 
 export const metadata = {
-  title: "Special Editions - Vikrand Times",
+  title: "Special Editions",
   description: "Browse the exclusive curated special editions of Vikrand Times Marathi newspaper.",
 };
 
@@ -18,9 +18,9 @@ export default async function SpecialEditionsArchive() {
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700">Error loading special editions. Please try again.</p>
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="p-6 bg-error-container text-on-error-container rounded-xl max-w-md text-center">
+          Error loading special editions. Please try again.
         </div>
       </div>
     );
@@ -35,70 +35,99 @@ export default async function SpecialEditionsArchive() {
         year: "numeric",
         month: "long",
         day: "numeric"
-      })
+      }),
+      shortMonth: date.toLocaleDateString("en-US", { month: "short" }).toUpperCase(),
+      dayNum: date.getDate(),
+      yearNum: date.getFullYear()
     };
   }) || [];
 
   return (
-    <div className="min-h-screen bg-orange-50">
-      {/* Header */}
-      <div className="bg-amber-100 border-b border-amber-200 relative overflow-hidden">
-        {/* Subtle decorative gold pattern here if needed */}
-        <div className="max-w-6xl mx-auto px-4 py-12 relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-amber-200 rounded-full shadow-inner border border-amber-300 text-amber-700">
-              <Star className="w-6 h-6 fill-amber-700" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Special Editions</h1>
+    <div className="min-h-screen bg-surface pb-24 md:pb-12">
+      {/* Hero Section */}
+      <div className="bg-secondary-container/20 border-b border-secondary-container/50 py-10 px-4 mb-4 md:mb-10 relative overflow-hidden">
+        {/* Subtle decorative glow */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-secondary-fixed/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-50"></div>
+        
+        <div className="max-w-6xl mx-auto flex flex-col items-center text-center relative z-10">
+          <div className="w-16 h-16 bg-secondary-fixed text-secondary rounded-full flex items-center justify-center mb-4 shadow-inner">
+            <Star size={32} strokeWidth={1.5} className="fill-secondary/20" />
           </div>
-          <p className="text-gray-700 max-w-xl text-lg mt-2">
-            Dive into our exclusive, specifically curated editions covering major festivals, deep-dive journalism, and local events.
+          <h1 className="text-3xl md:text-4xl font-headline font-bold text-on-surface mb-2">
+            Special Editions
+          </h1>
+          <p className="text-on-surface-variant max-w-lg">
+            Special collections, festival issues, and exclusive deep-dive journalism.
           </p>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-10">
+      <div className="max-w-6xl mx-auto px-4">
         {!data?.length ? (
-          <div className="text-center py-16">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-amber-100 rounded-full mb-4">
-              <Star className="w-10 h-10 text-amber-500 fill-amber-200" />
+          <div className="text-center py-20 flex flex-col items-center">
+            <div className="w-20 h-20 bg-secondary-fixed/50 rounded-full flex items-center justify-center mb-6 text-secondary">
+              <Star size={32} className="fill-secondary/10" />
             </div>
-            <h3 className="text-xl font-medium text-gray-900 mb-2">
+            <h3 className="text-xl font-headline font-bold text-on-surface mb-2">
               No Special Editions Yet
             </h3>
-            <p className="text-gray-600">
+            <p className="text-on-surface-variant max-w-sm">
               Check back soon for exclusive publications and festival specials.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-6 space-y-4 md:space-y-0">
             {formattedEditions.map((edition) => (
               <Link
                 key={edition.id}
                 href={`/special-edition/${edition.slug}`}
-                className="group flex flex-col bg-white border border-amber-200 rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-200/50 transition-all duration-300"
+                className="group flex flex-col bg-surface-container-lowest border border-outline-variant/30 rounded-2xl overflow-hidden hover:border-secondary/50 hover:shadow-lg transition-all duration-300"
               >
+                {/* Thumbnail Area */}
                 {edition.thumbnail_url ? (
-                  <div className="aspect-3/4 w-full relative bg-gray-100 border-b border-amber-100">
+                  <div className="aspect-3/2 w-full relative bg-surface-container-low border-b border-outline-variant/30 overflow-hidden">
                     <Image 
                       src={edition.thumbnail_url} 
                       alt={edition.title}
                       fill
-                      className="object-cover"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                     />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
                 ) : (
-                  <div className="aspect-3/4 w-full bg-amber-50 border-b border-amber-100 flex items-center justify-center">
-                    <Newspaper className="w-16 h-16 text-amber-300" />
+                  <div className="aspect-3/2 w-full bg-secondary-fixed/20 border-b border-outline-variant/30 flex items-center justify-center shrink-0">
+                    <Newspaper className="w-16 h-16 text-secondary/40" />
                   </div>
                 )}
-                <div className="p-5 flex-1 flex flex-col">
-                  <h3 className="text-xl font-semibold text-gray-900 group-hover:text-amber-700 transition-colors line-clamp-2">
+                
+                {/* Content Area */}
+                <div className="p-5 flex-1 flex flex-col relative">
+                  {/* Decorative Date Badge overlaying the image edge */}
+                  <div className="absolute -top-12 right-4 bg-surface-container-lowest border border-outline-variant/30 rounded-xl shadow-sm px-3 py-1.5 flex flex-col items-center justify-center min-w-[56px] group-hover:border-secondary transition-colors">
+                    <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">{edition.shortMonth}</span>
+                    <span className="text-lg font-bold text-on-surface leading-none">{edition.dayNum}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-secondary-fixed/50 text-secondary">
+                      <Star size={10} className="fill-secondary/40" /> Special
+                    </span>
+                    <span className="text-xs text-on-surface-variant font-medium">
+                      {edition.yearNum}
+                    </span>
+                  </div>
+
+                  <h3 className="font-headline font-bold text-xl text-on-surface group-hover:text-secondary transition-colors line-clamp-2 leading-tight">
                     {edition.title}
                   </h3>
-                  <div className="mt-auto pt-4 flex items-center justify-between text-gray-500">
-                    <span className="text-sm font-medium">{edition.formattedDate}</span>
-                    <ChevronRight className="w-5 h-5 group-hover:text-amber-600 transition-transform group-hover:translate-x-1" />
+                  
+                  <div className="mt-6 pt-4 border-t border-outline-variant/30 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+                      Read Edition
+                    </span>
+                    <div className="w-8 h-8 rounded-full bg-secondary-fixed/50 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-on-secondary transition-colors">
+                      <ChevronRight size={16} />
+                    </div>
                   </div>
                 </div>
               </Link>
