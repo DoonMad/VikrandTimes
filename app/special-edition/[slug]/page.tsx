@@ -24,7 +24,7 @@ export async function generateMetadata({
   }
 
   const url = `https://www.vikrandtimes.com/special-edition/${slug}`;
-  const displayImage = edition.thumbnail_url || "/og-image.webp";
+  const displayImage = edition.thumbnail_url || `https://www.vikrandtimes.com/api/og?title=${encodeURIComponent(edition.title)}&type=special`;
 
   return {
     title: `${edition.title} - Special Edition`,
@@ -96,7 +96,7 @@ export default async function SpecialEdition({params}: PageProps) {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
     "headline": `${edition.title} - Special Edition`,
-    "image": edition.thumbnail_url ? [edition.thumbnail_url] : ["https://www.vikrandtimes.com/og-image.webp"],
+    "image": edition.thumbnail_url ? [edition.thumbnail_url] : [`https://www.vikrandtimes.com/api/og?title=${encodeURIComponent(edition.title)}&type=special`],
     "datePublished": new Date(edition.publish_date).toISOString(),
     "dateModified": new Date(edition.updated_at).toISOString(),
     "author": [{

@@ -25,7 +25,7 @@ export async function generateMetadata({
       type: "article",
       images: [
         {
-          url: "/og-image.webp", // Customize later
+          url: `https://www.vikrandtimes.com/api/og?date=${date}`, 
           width: 1200,
           height: 630,
           alt: `Vikrand Times Edition - ${date}`,
@@ -36,7 +36,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: `Vikrand Times Edition - ${date}`,
       description: `Read the latest Marathi weekly newspaper edition published on ${date}.`,
-      images: ["/og-image.webp"],
+      images: [`https://www.vikrandtimes.com/api/og?date=${date}`],
     },
   };
 }

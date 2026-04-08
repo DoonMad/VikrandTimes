@@ -11,6 +11,27 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://www.vikrandtimes.com",
   },
+  openGraph: {
+    title: "Vikrand Times - Marathi Weekly Newspaper",
+    description: "Read the latest edition of Vikrand Times",
+    url: "https://www.vikrandtimes.com",
+    siteName: "Vikrand Times",
+    type: "website",
+    images: [
+      {
+        url: "https://www.vikrandtimes.com/api/og?title=Latest%20Edition",
+        width: 1200,
+        height: 630,
+        alt: "Vikrand Times - Latest Edition",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Vikrand Times - Marathi Weekly Newspaper",
+    description: "Read the latest edition of Vikrand Times",
+    images: ["https://www.vikrandtimes.com/api/og?title=Latest%20Edition"],
+  },
 };
 
 export default async function Home() {
