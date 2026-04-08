@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Analytics } from '@vercel/analytics/next';
 import Script from "next/script";
 import ConditionalLayout from "@/components/layout/ConditionalLayout";
+import PWAInstallPrompt from "@/components/layout/PWAInstallPrompt";
 
 // Marathi font
 const marathi = Noto_Sans_Devanagari({
@@ -95,6 +96,7 @@ export default async function RootLayout({
           <ConditionalLayout>
             {children}
           </ConditionalLayout>
+          <PWAInstallPrompt />
         </body>
       </AuthProvider>
     </html>

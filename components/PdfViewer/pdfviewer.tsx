@@ -311,7 +311,7 @@ export default function Viewer({ url }: { url: string }) {
 
           {/* Zoom Controls for mobile */}
           <div 
-            className={`fixed bottom-[160px] right-5 z-[100] flex flex-col bg-surface-container-lowest border border-surface-container-high rounded-full shadow-lg floating-toolbar overflow-hidden ${!isToolbarVisible && !drawerOpen ? 'hidden-toolbar' : ''}`}
+            className={`fixed bottom-[160px] right-5 z-100 flex flex-col bg-surface-container-lowest border border-surface-container-high rounded-full shadow-lg floating-toolbar overflow-hidden ${!isToolbarVisible && !drawerOpen ? 'hidden-toolbar' : ''}`}
             style={{ transition: "opacity 300ms ease, transform 300ms ease" }}
           >
             <button 
