@@ -17,7 +17,6 @@ async function runMigration() {
     const { data: normalEditions, error: normalErr } = await supabase
       .from("editions")
       .select("publish_date, page_count")
-      .or("page_count.eq.1,page_count.is.null")
       .order("publish_date", { ascending: false });
 
     if (normalErr) {
@@ -30,7 +29,6 @@ async function runMigration() {
     const { data: specialEditions, error: specialErr } = await supabase
       .from("special_editions")
       .select("slug, title, publish_date, page_count")
-      .or("page_count.eq.1,page_count.is.null")
       .order("publish_date", { ascending: false });
 
     if (specialErr) {

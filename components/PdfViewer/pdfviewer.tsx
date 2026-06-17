@@ -32,6 +32,7 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
   const [mounted, setMounted] = useState(false);
   const [pdfWidth, setPdfWidth] = useState(800);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
   
   // UI States
   const [isToolbarVisible, setIsToolbarVisible] = useState(true);
@@ -148,13 +149,17 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
   }, [pdfWidth]);
 
   useEffect(() => {
-    if (!isMobile && isFit) {
+    setIsImageLoading(true);
+  }, [currentPage]);
+
+  useEffect(() => {
+    if (mounted && !isMobile && isFit) {
       const handleResize = () => setScale(calculateFitScale());
       window.addEventListener("resize", handleResize);
       setScale(calculateFitScale());
       return () => window.removeEventListener("resize", handleResize);
     }
-  }, [isMobile, isFit, calculateFitScale]);
+  }, [mounted, isMobile, isFit, calculateFitScale]);
 
   // 4. Mobile: Intersection Observer for current page
   useEffect(() => {
@@ -321,20 +326,35 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
                   </div>
                   
                   <div className={`paper-grain w-full overflow-x-auto ${mobileScale > 1 ? 'block' : 'flex justify-center'} [scrollbar-width:none]`}>
-                    <div className={`w-max ${mobileScale > 1 ? '' : 'mx-auto'}`}>
-                      <img
-                        src={imageUrl}
-                        alt={`Page ${pageNum}`}
-                        loading={pageNum <= 2 ? "eager" : "lazy"}
-                        onLoad={() => {
-                          if (pageNum === 1) recordTelemetryTiming();
-                        }}
-                        style={{
-                          width: typeof window !== "undefined" ? `${window.innerWidth * mobileScale}px` : "100%",
-                          height: "auto"
-                        }}
-                        className="block shadow-sm border border-surface-container-high"
-                      />
+                    <div 
+                      className={`w-max ${mobileScale > 1 ? '' : 'mx-auto'}`}
+                      style={{
+                        width: typeof window !== "undefined" ? `${window.innerWidth * mobileScale}px` : "100%",
+                        aspectRatio: "1 / 1.414"
+                      }}
+                    >
+                      {Math.abs(pageNum - currentPage) <= 4 ? (
+                        <img
+                          src={imageUrl}
+                          alt={`Page ${pageNum}`}
+                          loading={pageNum <= 2 ? "eager" : "lazy"}
+                          onLoad={() => {
+                            if (pageNum === 1) recordTelemetryTiming();
+                          }}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain"
+                          }}
+                          className="block shadow-sm border border-surface-container-high"
+                        />
+                      ) : (
+                        <div
+                          className="w-full h-full flex items-center justify-center bg-surface-container-low text-on-surface-variant text-xs shadow-sm border border-surface-container-high"
+                        >
+                          Page {pageNum}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -425,6 +445,8 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
               <button 
                 onClick={(e) => { e.stopPropagation(); setDrawerOpen(true); }}
                 className="text-inverse-on-surface p-1 active:scale-95 transition-transform cursor-pointer"
+                aria-label="Open menu"
+                title="Open menu"
               >
                 <Menu size={22} className="text-white" />
               </button>
@@ -441,6 +463,8 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
               <button 
                 onClick={(e) => { e.stopPropagation(); handleShare(); }}
                 className="text-inverse-on-surface p-1 active:scale-95 transition-transform cursor-pointer"
+                aria-label="Share edition"
+                title="Share edition"
               >
                 <Share2 size={20} className="text-white" />
               </button>
@@ -457,6 +481,7 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
               disabled={mobileScale >= 3}
               className="cursor-pointer w-11 h-11 flex items-center justify-center text-on-surface hover:bg-surface-container-low disabled:opacity-30 transition-colors"
               title="Zoom In"
+              aria-label="Zoom In"
             >
               <ZoomIn size={20} />
             </button>
@@ -474,6 +499,7 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
               disabled={mobileScale <= 1}
               className="cursor-pointer w-11 h-11 flex items-center justify-center text-on-surface hover:bg-surface-container-low disabled:opacity-30 transition-colors"
               title="Zoom Out"
+              aria-label="Zoom Out"
             >
               <ZoomOut size={20} />
             </button>
@@ -490,7 +516,11 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
             {/* Drawer Header */}
             <div className="flex items-center justify-between p-4 border-b border-surface-container-high">
               <span className="font-headline font-bold text-lg text-primary">विक्रांद टाइम्स</span>
-              <button onClick={() => setDrawerOpen(false)} className="p-2 text-on-surface hover:bg-surface-container-low rounded-full">
+              <button 
+                onClick={() => setDrawerOpen(false)} 
+                className="p-2 text-on-surface hover:bg-surface-container-low rounded-full"
+                aria-label="Close menu"
+              >
                 <X size={20} />
               </button>
             </div>
@@ -578,6 +608,7 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
                 onClick={goToPrevPage}
                 disabled={currentPage === 1}
                 className="flex items-center gap-1 px-3 py-1.5 border border-outline-variant/60 rounded justify-center hover:bg-surface-container-low disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Previous page"
               >
                 <ChevronLeft size={16} /> <span className="text-sm hidden lg:inline">Previous</span>
               </button>
@@ -590,6 +621,7 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
                 onClick={goToNextPage}
                 disabled={numPages !== null && currentPage === numPages}
                 className="flex items-center gap-1 px-3 py-1.5 border border-outline-variant/60 rounded hover:bg-surface-container-low disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Next page"
               >
                 <span className="text-sm hidden lg:inline">Next</span> <ChevronRight size={16} />
               </button>
@@ -610,6 +642,7 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
                   onClick={() => handleZoom(-1)}
                   className="w-8 h-8 flex items-center justify-center hover:bg-surface-container-high rounded-l text-on-surface-variant"
                   title="Zoom Out"
+                  aria-label="Zoom Out"
                 >
                   <ZoomOut size={16} />
                 </button>
@@ -620,6 +653,7 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
                   onClick={() => handleZoom(1)}
                   className="w-8 h-8 flex items-center justify-center hover:bg-surface-container-high rounded-r text-on-surface-variant"
                   title="Zoom In"
+                  aria-label="Zoom In"
                 >
                   <ZoomIn size={16} />
                 </button>
@@ -644,6 +678,7 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
                 onClick={toggleFullscreen}
                 className="flex items-center justify-center px-3 py-1.5 border border-outline-variant/60 hover:bg-surface-container-low rounded text-sm font-medium text-on-surface"
                 title="Toggle Fullscreen"
+                aria-label="Toggle fullscreen"
               >
                 {isFullscreen ? <Shrink size={16} /> : <Expand size={16} />}
               </button>
@@ -654,6 +689,7 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
                 onClick={handleShare}
                 className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
                 title="Share (S)"
+                aria-label="Share edition"
               >
                 <Share2 size={18} />
               </button>
@@ -663,6 +699,7 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
                   onClick={() => setShortcutsOpen(!shortcutsOpen)}
                   className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
                   title="Keyboard Shortcuts"
+                  aria-label="Keyboard shortcuts"
                 >
                   <Keyboard size={18} />
                 </button>
@@ -708,7 +745,12 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
 
           {/* Subdued Background Canvas */}
           <div className="flex-1 overflow-auto bg-surface py-6 px-4 flex justify-center [scrollbar-width:thin]">
-            <div className="relative shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] rounded-sm">
+            <div className="relative shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] rounded-sm min-h-[500px]">
+              {isImageLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-surface/50 backdrop-blur-[2px] z-10 transition-opacity duration-200">
+                  <div className="w-10 h-10 border-4 border-primary-fixed border-t-primary rounded-full animate-spin"></div>
+                </div>
+              )}
               {isWebPMode ? (
                 // Render WebP page directly on desktop
                 <div className="paper-grain bg-white">
@@ -719,13 +761,17 @@ export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = 
                         : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/editions-pdf/webp/${publishDate}/page-${currentPage}.webp`
                     }
                     alt={`Page ${currentPage}`}
-                    onLoad={recordTelemetryTiming}
+                    onLoad={(e) => {
+                      recordTelemetryTiming();
+                      setPdfWidth(e.currentTarget.naturalWidth || 2400);
+                      setIsImageLoading(false);
+                    }}
                     style={{
                       width: `${pdfWidth * scale}px`,
                       height: "auto",
                       maxWidth: "none"
                     }}
-                    className="block shadow-sm"
+                    className={`block shadow-sm transition-opacity duration-200 ${isImageLoading ? 'opacity-30' : 'opacity-100'}`}
                   />
                 </div>
               ) : (

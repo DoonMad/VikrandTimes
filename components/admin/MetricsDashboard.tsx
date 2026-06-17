@@ -69,6 +69,12 @@ export default function MetricsDashboard() {
   const storageSavedBytes = totalOriginal - totalCompressed;
   const storageSavedPercent = totalOriginal > 0 ? (storageSavedBytes / totalOriginal) * 100 : 0;
 
+  // Calculate savings for heavy special editions (where savings > 0)
+  const specialMetrics = metrics.filter(m => m.original_size_bytes - m.compressed_size_bytes > 0);
+  const specialOriginalSum = specialMetrics.reduce((acc, curr) => acc + curr.original_size_bytes, 0);
+  const specialSavedSum = specialMetrics.reduce((acc, curr) => acc + (curr.original_size_bytes - curr.compressed_size_bytes), 0);
+  const specialSavingsPercent = specialOriginalSum > 0 ? (specialSavedSum / specialOriginalSum) * 100 : 0;
+
   const averageConversionTimePerPage = totalPages > 0 ? totalConversionTime / totalPages : 0;
 
   // Frontend rendering timing logic
@@ -82,11 +88,14 @@ export default function MetricsDashboard() {
   // Formatting helpers
   const formatBytes = (bytes: number, decimals = 2) => {
     if (bytes === 0) return "0 Bytes";
+    const isNegative = bytes < 0;
+    const absBytes = Math.abs(bytes);
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
     const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+    const i = Math.floor(Math.log(absBytes) / Math.log(k));
+    const formattedVal = parseFloat((absBytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+    return isNegative ? `-${formattedVal}` : formattedVal;
   };
 
   return (
@@ -95,7 +104,7 @@ export default function MetricsDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Card 1: Storage Saved */}
         <div className="bg-surface-container-lowest border border-surface-container-high rounded-2xl p-5 shadow-sm flex items-start gap-4">
-          <div className="p-3 bg-primary-fixed/30 text-primary rounded-xl shrink-0">
+          <div className={`p-3 rounded-xl shrink-0 ${storageSavedPercent >= 0 ? 'bg-primary-fixed/30 text-primary' : 'bg-error-container/40 text-error'}`}>
             <HardDrive size={22} />
           </div>
           <div>
@@ -103,8 +112,16 @@ export default function MetricsDashboard() {
             <h3 className="text-2xl font-headline font-bold text-on-surface mt-1">
               {formatBytes(storageSavedBytes)}
             </h3>
-            <p className="text-xs text-primary font-bold mt-1.5 flex items-center gap-1">
-              <TrendingUp size={14} /> {storageSavedPercent.toFixed(1)}% reduction
+            <p className={`text-xs font-bold mt-1.5 flex items-center gap-1 ${storageSavedPercent >= 0 ? 'text-primary' : 'text-error'}`}>
+              {storageSavedPercent >= 0 ? (
+                <>
+                  <TrendingUp size={14} /> {storageSavedPercent.toFixed(1)}% reduction
+                </>
+              ) : (
+                <>
+                  <TrendingUp size={14} className="rotate-180" /> {Math.abs(storageSavedPercent).toFixed(1)}% increase
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -185,7 +202,9 @@ export default function MetricsDashboard() {
                       <td className="py-3 font-semibold">{row.target_id}</td>
                       <td className="py-3 text-on-surface-variant">{formatBytes(row.original_size_bytes)}</td>
                       <td className="py-3">{formatBytes(row.compressed_size_bytes)}</td>
-                      <td className="py-3 text-primary font-bold">-{ratio.toFixed(0)}%</td>
+                      <td className={`py-3 font-bold ${ratio >= 0 ? 'text-primary' : 'text-error'}`}>
+                        {ratio >= 0 ? `-${ratio.toFixed(0)}%` : `+${Math.abs(ratio).toFixed(0)}%`}
+                      </td>
                       <td className="py-3 text-on-surface-variant">{(row.conversion_time_ms / 1000).toFixed(1)}s</td>
                       <td className="py-3 text-right text-[#14b8a6]">
                         {row.client_load_time_ms ? `${(row.client_load_time_ms / 1000).toFixed(2)}s` : "-"}
@@ -206,7 +225,11 @@ export default function MetricsDashboard() {
             <div className="p-4 bg-primary-fixed/20 border border-primary/10 rounded-xl">
               <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-1">Backend Storage Optimization</h4>
               <p className="text-sm font-medium text-on-surface leading-snug">
-                "Reduced digital media storage footprint by **{storageSavedPercent.toFixed(0)}%** (saving **{formatBytes(storageSavedBytes, 1)}** in total hot storage volume) by designing a queue-based Node.js microservice that rasterizes print-heavy PDFs into optimized WebP page graphics."
+                {storageSavedBytes >= 0 ? (
+                  `"Achieved a **${storageSavedPercent.toFixed(0)}%** reduction in digital media storage footprint (saving **${formatBytes(storageSavedBytes, 1)}** in total volume) by designing a queue-based Node.js microservice that rasterizes print-heavy PDFs into optimized WebP page graphics."`
+                ) : (
+                  `"Optimized digital media delivery architecture by designing a queue-based Node.js microservice that processes print-heavy PDFs into WebP page graphics, resolving out-of-memory crashes on mobile devices while reducing heavy special edition file sizes by **${specialSavingsPercent.toFixed(0)}%**."`
+                )}
               </p>
             </div>
 

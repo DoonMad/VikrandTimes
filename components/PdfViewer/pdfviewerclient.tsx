@@ -7,6 +7,8 @@
 import dynamic from "next/dynamic";
 import PdfViewerSkeleton from "./PdfViewerSkeleton";
 
+import { ViewerProps } from "./pdfviewer";
+
 const PdfViewer = dynamic(
   () => import("./pdfviewer"),
   {
@@ -15,8 +17,8 @@ const PdfViewer = dynamic(
   }
 );
 
-export default function PdfViewerClient({ url }: { url: string }) {
+export default function PdfViewerClient(props: ViewerProps) {
   return (
-      <PdfViewer url={url} />
+      <PdfViewer {...props} />
   );
 }

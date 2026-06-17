@@ -161,15 +161,13 @@ app.post("/api/admin/migrate-existing", async (req, res) => {
   try {
     const { data: normalEditions, error: normalErr } = await supabase
       .from("editions")
-      .select("publish_date, page_count")
-      .or("page_count.eq.1,page_count.is.null");
+      .select("publish_date, page_count");
 
     if (normalErr) throw normalErr;
 
     const { data: specialEditions, error: specialErr } = await supabase
       .from("special_editions")
-      .select("slug, title, publish_date, page_count")
-      .or("page_count.eq.1,page_count.is.null");
+      .select("slug, title, publish_date, page_count");
 
     if (specialErr) throw specialErr;
 

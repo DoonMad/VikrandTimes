@@ -87,10 +87,13 @@ const worker = new Worker<JobData>(
 
       // 3. Initialize pdf2pic converter
       const converter = fromPath(pdfPath, {
-        density: 150, // 150 DPI for crisp text readability
+        density: 200, // Higher DPI for sharper text rendering
         saveFilename: `page-${jobId}`,
         savePath: tempDir,
         format: "png",
+        width: 1800, // 2400px width ensures high-zoom readability
+        height: undefined,
+        preserveAspectRatio: true,
       });
 
       const bucket = isSpecial ? "special-editions-pdf" : "editions-pdf";
@@ -108,7 +111,7 @@ const worker = new Worker<JobData>(
 
         // Compress PNG to WebP buffer using sharp
         const webpBuffer = await sharp(pngPath)
-          .webp({ quality: 80 }) // 80% WebP quality strikes a perfect balance (crisp & under 300KB)
+          .webp({ quality: 85 }) // 85% WebP quality for cleaner text edges
           .toBuffer();
 
         compressedSize += webpBuffer.length;
