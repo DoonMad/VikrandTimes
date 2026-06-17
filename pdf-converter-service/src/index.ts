@@ -6,6 +6,7 @@ import fs from "fs";
 import dotenv from "dotenv";
 import { initializeDatabase } from "./db/init";
 import { addPdfJob } from "./queue";
+import "./worker";
 
 dotenv.config();
 

@@ -1,0 +1,227 @@
+import { Worker } from "bullmq";
+import { fromPath } from "pdf2pic";
+import sharp from "sharp";
+import { createClient } from "@supabase/supabase-js";
+import path from "path";
+import fs from "fs";
+import dotenv from "dotenv";
+import { activeJobs } from "./index";
+import { JobData } from "./queue";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
+
+dotenv.config();
+
+const redisUrl = process.env.REDIS_URL || "redis://127.0.0.1:6379";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// Worker to process PDF conversions
+const worker = new Worker<JobData>(
+  "pdf-conversion",
+  async (job) => {
+    const jobId = job.id!;
+    const { pdfPath, publishDate, title, slug, isSpecial } = job.data;
+
+    console.log(`👷 Worker started job ${jobId} (isSpecial: ${isSpecial})`);
+
+    activeJobs.set(jobId, {
+      status: "processing",
+      progress: 0,
+      total: 0,
+    });
+
+    const tempDir = path.join(__dirname, `../temp-${jobId}`);
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    const startTime = Date.now();
+    let originalSize = 0;
+    let compressedSize = 0;
+    let totalPages = 0;
+
+    try {
+      // 1. Get original PDF file size
+      const stats = fs.statSync(pdfPath);
+      originalSize = stats.size;
+
+      // 2. Determine total pages using pdfjs-dist
+      const dataBuffer = new Uint8Array(fs.readFileSync(pdfPath));
+      const loadingTask = pdfjsLib.getDocument({
+        data: dataBuffer,
+        useWorkerFetch: false,
+        isEvalSupported: false,
+      });
+      const pdf = await loadingTask.promise;
+      totalPages = pdf.numPages;
+
+      console.log(`📄 PDF has ${totalPages} pages. Starting conversion...`);
+
+      activeJobs.set(jobId, {
+        status: "processing",
+        progress: 0,
+        total: totalPages,
+      });
+
+      // 3. Initialize pdf2pic converter
+      const converter = fromPath(pdfPath, {
+        density: 150, // 150 DPI for crisp text readability
+        saveFilename: `page-${jobId}`,
+        savePath: tempDir,
+        format: "png",
+      });
+
+      const bucket = isSpecial ? "special-editions-pdf" : "editions-pdf";
+
+      // 4. Convert and upload page-by-page
+      for (let i = 1; i <= totalPages; i++) {
+        console.log(`⏳ Converting page ${i}/${totalPages}...`);
+
+        const conversionResult = await converter(i);
+        const pngPath = conversionResult.path;
+
+        if (!pngPath || !fs.existsSync(pngPath)) {
+          throw new Error(`Failed to convert page ${i} to PNG.`);
+        }
+
+        // Compress PNG to WebP buffer using sharp
+        const webpBuffer = await sharp(pngPath)
+          .webp({ quality: 80 }) // 80% WebP quality strikes a perfect balance (crisp & under 300KB)
+          .toBuffer();
+
+        compressedSize += webpBuffer.length;
+
+        // Path in Supabase storage: webp/{publishDate}/page-X.webp or webp/{slug}/page-X.webp
+        const uploadPath = isSpecial
+          ? `webp/${slug}/page-${i}.webp`
+          : `webp/${publishDate}/page-${i}.webp`;
+
+        console.log(`☁️ Uploading page ${i} to ${bucket}/${uploadPath}...`);
+        const { error: uploadErr } = await supabase.storage
+          .from(bucket)
+          .upload(uploadPath, webpBuffer, {
+            contentType: "image/webp",
+            upsert: true,
+          });
+
+        if (uploadErr) {
+          throw uploadErr;
+        }
+
+        // Clean up temporary PNG
+        fs.unlinkSync(pngPath);
+
+        // Update in-memory job progress
+        activeJobs.set(jobId, {
+          status: "processing",
+          progress: i,
+          total: totalPages,
+        });
+      }
+
+      // 5. Upload original PDF to Supabase storage to maintain backwards compatibility
+      const originalPath = isSpecial ? `${slug}.pdf` : `editions/${publishDate}.pdf`;
+      console.log(`☁️ Uploading original PDF to ${bucket}/${originalPath}...`);
+      
+      const { error: pdfUploadErr } = await supabase.storage
+        .from(bucket)
+        .upload(originalPath, fs.readFileSync(pdfPath), {
+          contentType: "application/pdf",
+          upsert: true,
+        });
+
+      if (pdfUploadErr) {
+        throw pdfUploadErr;
+      }
+
+      // 6. Update database records
+      console.log(`💾 Updating database record with page count (${totalPages})...`);
+      if (isSpecial) {
+        const { error: dbErr } = await supabase
+          .from("special_editions")
+          .update({ page_count: totalPages })
+          .eq("slug", slug);
+
+        if (dbErr) throw dbErr;
+      } else {
+        const { error: dbErr } = await supabase
+          .from("editions")
+          .upsert({
+            publish_date: publishDate,
+            page_count: totalPages,
+          });
+
+        if (dbErr) throw dbErr;
+      }
+
+      // 7. Record metrics
+      const conversionTime = Date.now() - startTime;
+      console.log(`📊 Saving conversion metrics: ${conversionTime}ms, ratio: ${((1 - (compressedSize / originalSize)) * 100).toFixed(1)}% savings`);
+      
+      const { error: metricsErr } = await supabase.from("metrics").insert({
+        target_id: isSpecial ? slug! : publishDate!,
+        original_size_bytes: originalSize,
+        compressed_size_bytes: compressedSize,
+        conversion_time_ms: conversionTime,
+        page_count: totalPages,
+      });
+
+      if (metricsErr) {
+        console.warn("⚠️ Warning: Failed to record metrics:", metricsErr.message);
+      }
+
+      // Mark job as completed
+      activeJobs.set(jobId, {
+        status: "completed",
+        progress: totalPages,
+        total: totalPages,
+      });
+
+      console.log(`🎉 Job ${jobId} successfully completed!`);
+    } catch (err: any) {
+      console.error(`❌ Job ${jobId} failed:`, err);
+      activeJobs.set(jobId, {
+        status: "failed",
+        progress: 0,
+        total: totalPages,
+        error: err.message || "Unknown conversion error",
+      });
+      throw err;
+    } finally {
+      // Clean up temp uploads and processed temp directory
+      try {
+        if (fs.existsSync(pdfPath)) {
+          fs.unlinkSync(pdfPath);
+        }
+        if (fs.existsSync(tempDir)) {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      } catch (cleanupErr) {
+        console.error("⚠️ Failed to clean up temp files:", cleanupErr);
+      }
+
+      // Auto-expire job from activeJobs in 5 minutes
+      setTimeout(() => {
+        activeJobs.delete(jobId);
+        console.log(`🗑️ Cleared completed job ${jobId} from memory.`);
+      }, 5 * 60 * 1000);
+    }
+  },
+  {
+    connection: {
+      url: redisUrl,
+    },
+    concurrency: 1, // Process one PDF at a time to prevent CPU throttling
+  }
+);
+
+worker.on("completed", (job) => {
+  console.log(`✅ Job ${job.id} marked as completed in queue.`);
+});
+
+worker.on("failed", (job, err) => {
+  console.error(`🚨 Job ${job?.id} failed with error:`, err);
+});
