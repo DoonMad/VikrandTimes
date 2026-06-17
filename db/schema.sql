@@ -326,3 +326,48 @@ USING (
   bucket_id = 'special-editions-thumbnails' AND 
   EXISTS (SELECT 1 FROM profiles WHERE profiles.user_id = auth.uid() AND profiles.role = 'admin')
 );
+
+
+-- =============================================
+-- WEBP CONVERSION & TELEMETRY SCHEMAS
+-- =============================================
+
+-- Add page_count to editions (defaults to 1 for backwards compatibility)
+ALTER TABLE editions ADD COLUMN IF NOT EXISTS page_count INTEGER DEFAULT 1;
+
+-- Add page_count to special_editions (defaults to 1 for backwards compatibility)
+ALTER TABLE special_editions ADD COLUMN IF NOT EXISTS page_count INTEGER DEFAULT 1;
+
+-- Create metrics table for tracking file compression and speed
+CREATE TABLE IF NOT EXISTS metrics (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  target_id TEXT NOT NULL,
+  original_size_bytes BIGINT NOT NULL,
+  compressed_size_bytes BIGINT NOT NULL,
+  conversion_time_ms INTEGER NOT NULL,
+  page_count INTEGER NOT NULL,
+  client_load_time_ms INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS for metrics
+ALTER TABLE metrics ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can insert metrics" 
+ON metrics 
+FOR INSERT 
+TO anon, authenticated 
+WITH CHECK (true);
+
+CREATE POLICY "Only admins can view metrics" 
+ON metrics 
+FOR SELECT 
+TO authenticated 
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles 
+    WHERE profiles.user_id = auth.uid() 
+      AND profiles.role = 'admin'
+  )
+);
+
