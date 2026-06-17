@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 // import Error
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+
 export default function AdminForm() {
   const supabase = createClient();
   const router = useRouter();
@@ -67,7 +69,7 @@ export default function AdminForm() {
   const pollJobStatus = (jobId: string) => {
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`http://localhost:4000/api/jobs/status/${jobId}`);
+        const res = await fetch(`${BACKEND_URL}/api/jobs/status/${jobId}`);
         if (!res.ok) throw new Error("Failed to check status");
 
         const data = await res.json();
@@ -116,7 +118,7 @@ export default function AdminForm() {
       formData.append("date", date);
       formData.append("isSpecial", "false");
 
-      const response = await fetch("http://localhost:4000/api/editions/upload", {
+      const response = await fetch(`${BACKEND_URL}/api/editions/upload`, {
         method: "POST",
         body: formData,
       });

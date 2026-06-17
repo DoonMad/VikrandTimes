@@ -71,8 +71,6 @@ const worker = new Worker<JobData>(
       const dataBuffer = new Uint8Array(fs.readFileSync(pdfPath));
       const loadingTask = pdfjsLib.getDocument({
         data: dataBuffer,
-        useWorkerFetch: false,
-        isEvalSupported: false,
       });
       const pdf = await loadingTask.promise;
       totalPages = pdf.numPages;
@@ -91,7 +89,7 @@ const worker = new Worker<JobData>(
         saveFilename: `page-${jobId}`,
         savePath: tempDir,
         format: "png",
-        width: 1800, // 2400px width ensures high-zoom readability
+        width: 2400, // 2400px width ensures high-zoom readability
         height: undefined,
         preserveAspectRatio: true,
       });

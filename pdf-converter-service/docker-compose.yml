@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:alpine
+    container_name: pdf-redis
+    restart: always
+    # We do NOT expose Redis to the public internet. Only the app container can see it.
+    expose:
+      - "6379"
+
+  app:
+    build: .
+    container_name: pdf-app
+    restart: always
+    ports:
+      - "4000:4000" # Expose the API to the public on port 4000
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    environment:
+      - PORT=4000
+      - REDIS_URL=redis://redis:6379
+    # Limit memory usage to prevent VM crashes (since we have 1GB RAM total)
+    deploy:
+      resources:
+        limits:
+          memory: 650M
