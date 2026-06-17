@@ -120,7 +120,12 @@ export default async function SpecialEdition({params}: PageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <div className="bg-amber-50 min-h-screen">
         <Suspense fallback={<PdfViewerSkeleton/>}>
-          <PdfViewerClient url={pdfUrl} />
+          <PdfViewerClient 
+            url={pdfUrl} 
+            slug={slug} 
+            pageCount={edition.page_count} 
+            isSpecial={true} 
+          />
         </Suspense>
       </div>
     </>

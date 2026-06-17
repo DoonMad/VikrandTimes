@@ -13,7 +13,15 @@ const MIN_SCALE = 0.5;
 const MAX_SCALE = 3;
 const ZOOM_STEP = 0.25;
 
-export default function Viewer({ url }: { url: string }) {
+export interface ViewerProps {
+  url: string;
+  publishDate?: string;
+  slug?: string;
+  pageCount?: number;
+  isSpecial?: boolean;
+}
+
+export default function Viewer({ url, publishDate, slug, pageCount, isSpecial = false }: ViewerProps) {
   const user = useAuth();
   
   const [numPages, setNumPages] = useState<number | null>(null);
@@ -36,6 +44,55 @@ export default function Viewer({ url }: { url: string }) {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // WebP Mode determination
+  const isWebPMode = pageCount !== undefined && pageCount > 1;
+
+  // Telemetry references
+  const mountTimeRef = useRef(typeof performance !== "undefined" ? performance.now() : 0);
+  const hasLoggedTelemetryRef = useRef(false);
+
+  const recordTelemetryTiming = async () => {
+    if (hasLoggedTelemetryRef.current || !isWebPMode) return;
+    hasLoggedTelemetryRef.current = true;
+
+    const loadTimeMs = Math.round(performance.now() - mountTimeRef.current);
+    console.log(`⏱️ Client render loaded in ${loadTimeMs}ms`);
+
+    try {
+      const targetId = isSpecial ? slug : publishDate;
+      if (!targetId) return;
+
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      const { createClient } = await import("@supabase/supabase-js");
+      const client = createClient(supabaseUrl, supabaseKey);
+
+      const { data } = await client
+        .from("metrics")
+        .select("id")
+        .eq("target_id", targetId)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (data && data.length > 0) {
+        await client
+          .from("metrics")
+          .update({ client_load_time_ms: loadTimeMs })
+          .eq("id", data[0].id);
+      }
+    } catch (err) {
+      console.warn("Failed to log telemetry:", err);
+    }
+  };
+
+  // Bind numPages to pageCount in WebP mode
+  useEffect(() => {
+    if (isWebPMode && pageCount) {
+      setNumPages(pageCount);
+      pageRefs.current = new Array(pageCount).fill(null);
+    }
+  }, [isWebPMode, pageCount]);
 
   // 1. Mount & Mobile Detection
   useEffect(() => {
@@ -242,53 +299,95 @@ export default function Viewer({ url }: { url: string }) {
           ============================================= */}
       {isMobile ? (
         <div className="w-full pb-24">
-          <Document
-            file={url}
-            onLoadSuccess={({ numPages }) => {
-              setNumPages(numPages);
-              // reset refs array length to match pages
-              pageRefs.current = new Array(numPages).fill(null);
-            }}
-            loading={
-              <div className="flex flex-col items-center justify-center p-20">
-                <div className="w-10 h-10 border-4 border-primary-fixed border-t-primary rounded-full animate-spin"></div>
-              </div>
-            }
-          >
-            {Array.from({ length: numPages || 0 }, (_, i) => i + 1).map((pageNum) => (
-              <div 
-                key={pageNum}
-                data-page-index={pageNum}
-                ref={(el) => { pageRefs.current[pageNum - 1] = el; }}
-                className="w-full relative shadow-sm border-b border-surface-container-high"
-              >
-                {/* Subtle page divider */}
-                <div className="w-full py-3 flex flex-col items-center justify-center bg-surface-container-low">
-                  <div className="h-px w-1/4 bg-outline-variant/30 mb-1"></div>
-                  <span className="text-[10px] text-on-surface-variant font-label tracking-wide">
-                    Page {pageNum}
-                  </span>
-                </div>
-                
-                <div className={`paper-grain w-full overflow-x-auto ${mobileScale > 1 ? 'block' : 'flex justify-center'} [scrollbar-width:none]`}>
-                  <div className={`w-max ${mobileScale > 1 ? '' : 'mx-auto'}`}>
-                    <Page
-                      pageNumber={pageNum}
-                      width={typeof window !== "undefined" ? window.innerWidth * mobileScale : 400}
-                      devicePixelRatio={typeof window !== "undefined" ? Math.max(window.devicePixelRatio || 1, 2) : 2}
-                      renderTextLayer={false}
-                      renderAnnotationLayer={false}
-                      loading={
-                        <div className="flex items-center justify-center aspect-[1/1.4] w-full text-on-surface-variant">
-                          Loading page {pageNum}...
-                        </div>
-                      }
-                    />
+          {isWebPMode ? (
+            // Render WebP images directly on mobile
+            Array.from({ length: numPages || 0 }, (_, i) => i + 1).map((pageNum) => {
+              const imageUrl = isSpecial
+                ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/special-editions-pdf/webp/${slug}/page-${pageNum}.webp`
+                : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/editions-pdf/webp/${publishDate}/page-${pageNum}.webp`;
+
+              return (
+                <div 
+                  key={pageNum}
+                  data-page-index={pageNum}
+                  ref={(el) => { pageRefs.current[pageNum - 1] = el; }}
+                  className="w-full relative shadow-sm border-b border-surface-container-high"
+                >
+                  <div className="w-full py-3 flex flex-col items-center justify-center bg-surface-container-low">
+                    <div className="h-px w-1/4 bg-outline-variant/30 mb-1"></div>
+                    <span className="text-[10px] text-on-surface-variant font-label tracking-wide">
+                      Page {pageNum}
+                    </span>
+                  </div>
+                  
+                  <div className={`paper-grain w-full overflow-x-auto ${mobileScale > 1 ? 'block' : 'flex justify-center'} [scrollbar-width:none]`}>
+                    <div className={`w-max ${mobileScale > 1 ? '' : 'mx-auto'}`}>
+                      <img
+                        src={imageUrl}
+                        alt={`Page ${pageNum}`}
+                        loading={pageNum <= 2 ? "eager" : "lazy"}
+                        onLoad={() => {
+                          if (pageNum === 1) recordTelemetryTiming();
+                        }}
+                        style={{
+                          width: typeof window !== "undefined" ? `${window.innerWidth * mobileScale}px` : "100%",
+                          height: "auto"
+                        }}
+                        className="block shadow-sm border border-surface-container-high"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </Document>
+              );
+            })
+          ) : (
+            // Fallback: render original PDF
+            <Document
+              file={url}
+              onLoadSuccess={({ numPages }) => {
+                setNumPages(numPages);
+                pageRefs.current = new Array(numPages).fill(null);
+              }}
+              loading={
+                <div className="flex flex-col items-center justify-center p-20">
+                  <div className="w-10 h-10 border-4 border-primary-fixed border-t-primary rounded-full animate-spin"></div>
+                </div>
+              }
+            >
+              {Array.from({ length: numPages || 0 }, (_, i) => i + 1).map((pageNum) => (
+                <div 
+                  key={pageNum}
+                  data-page-index={pageNum}
+                  ref={(el) => { pageRefs.current[pageNum - 1] = el; }}
+                  className="w-full relative shadow-sm border-b border-surface-container-high"
+                >
+                  <div className="w-full py-3 flex flex-col items-center justify-center bg-surface-container-low">
+                    <div className="h-px w-1/4 bg-outline-variant/30 mb-1"></div>
+                    <span className="text-[10px] text-on-surface-variant font-label tracking-wide">
+                      Page {pageNum}
+                    </span>
+                  </div>
+                  
+                  <div className={`paper-grain w-full overflow-x-auto ${mobileScale > 1 ? 'block' : 'flex justify-center'} [scrollbar-width:none]`}>
+                    <div className={`w-max ${mobileScale > 1 ? '' : 'mx-auto'}`}>
+                      <Page
+                        pageNumber={pageNum}
+                        width={typeof window !== "undefined" ? window.innerWidth * mobileScale : 400}
+                        devicePixelRatio={typeof window !== "undefined" ? Math.max(window.devicePixelRatio || 1, 2) : 2}
+                        renderTextLayer={false}
+                        renderAnnotationLayer={false}
+                        loading={
+                          <div className="flex items-center justify-center aspect-[1/1.4] w-full text-on-surface-variant">
+                            Loading page {pageNum}...
+                          </div>
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </Document>
+          )}
 
           {/* Mobile Floating Toolbar Pill (Draggable) */}
           <div 
@@ -610,30 +709,52 @@ export default function Viewer({ url }: { url: string }) {
           {/* Subdued Background Canvas */}
           <div className="flex-1 overflow-auto bg-surface py-6 px-4 flex justify-center [scrollbar-width:thin]">
             <div className="relative shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] rounded-sm">
-              <Document
-                file={url}
-                onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                loading={
-                  <div className="flex items-center justify-center w-[800px] h-[1000px] bg-white text-on-surface-variant">
-                    <div className="w-10 h-10 border-4 border-primary-fixed border-t-primary rounded-full animate-spin"></div>
-                  </div>
-                }
-              >
+              {isWebPMode ? (
+                // Render WebP page directly on desktop
                 <div className="paper-grain bg-white">
-                  <Page
-                    pageNumber={currentPage}
-                    scale={scale}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                    onLoadSuccess={onPageLoadSuccess}
-                    loading={
-                      <div className="flex items-center justify-center w-[800px] h-[1000px] bg-white text-on-surface-variant">
-                        Rendering page...
-                      </div>
+                  <img
+                    src={
+                      isSpecial
+                        ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/special-editions-pdf/webp/${slug}/page-${currentPage}.webp`
+                        : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/editions-pdf/webp/${publishDate}/page-${currentPage}.webp`
                     }
+                    alt={`Page ${currentPage}`}
+                    onLoad={recordTelemetryTiming}
+                    style={{
+                      width: `${pdfWidth * scale}px`,
+                      height: "auto",
+                      maxWidth: "none"
+                    }}
+                    className="block shadow-sm"
                   />
                 </div>
-              </Document>
+              ) : (
+                // Fallback: render original PDF page
+                <Document
+                  file={url}
+                  onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                  loading={
+                    <div className="flex items-center justify-center w-[800px] h-[1000px] bg-white text-on-surface-variant">
+                      <div className="w-10 h-10 border-4 border-primary-fixed border-t-primary rounded-full animate-spin"></div>
+                    </div>
+                  }
+                >
+                  <div className="paper-grain bg-white">
+                    <Page
+                      pageNumber={currentPage}
+                      scale={scale}
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                      onLoadSuccess={onPageLoadSuccess}
+                      loading={
+                        <div className="flex items-center justify-center w-[800px] h-[1000px] bg-white text-on-surface-variant">
+                          Rendering page...
+                        </div>
+                      }
+                    />
+                  </div>
+                </Document>
+              )}
             </div>
           </div>
         </div>

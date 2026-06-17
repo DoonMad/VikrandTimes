@@ -39,7 +39,7 @@ export default async function Home() {
 
   const { data, error } = await supabase
     .from("editions")
-    .select("publish_date")
+    .select("publish_date, page_count")
     .order("publish_date", { ascending: false })
     .limit(1)
     .single();
@@ -112,7 +112,11 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
       <Suspense fallback={<PdfViewerSkeleton />}>
-        <PdfViewerClient url={pdfUrl} />
+        <PdfViewerClient 
+          url={pdfUrl} 
+          publishDate={data.publish_date} 
+          pageCount={data.page_count} 
+        />
       </Suspense>
     </>
   );

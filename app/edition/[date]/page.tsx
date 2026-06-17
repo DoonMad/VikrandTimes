@@ -1,6 +1,7 @@
 import PdfViewerClient from "@/components/PdfViewer/pdfviewerclient";
 import PdfViewerSkeleton from "@/components/PdfViewer/PdfViewerSkeleton";
 import { Suspense } from "react";
+import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -52,6 +53,15 @@ export default async function Edition({params}: PageProps) {
   const pdfUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/editions-pdf/editions/${date}.pdf`;
   const url = `https://www.vikrandtimes.com/edition/${date}`;
 
+  const supabase = await createClient();
+  const { data: edition } = await supabase
+    .from("editions")
+    .select("page_count")
+    .eq("publish_date", date)
+    .single();
+
+  const pageCount = edition?.page_count || 1;
+
   // Organization Schema
   const orgSchema = {
     "@context": "https://schema.org",
@@ -92,7 +102,11 @@ export default async function Edition({params}: PageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
       <Suspense fallback={<PdfViewerSkeleton/>}>
-        <PdfViewerClient url={pdfUrl} />
+        <PdfViewerClient 
+          url={pdfUrl} 
+          publishDate={date} 
+          pageCount={pageCount} 
+        />
       </Suspense>
     </>
   );
