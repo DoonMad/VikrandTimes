@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Upload, Mail, LogOut } from "lucide-react";
+import { Upload, Mail, LogOut, BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function AdminSidebar() {
@@ -25,6 +25,11 @@ export default function AdminSidebar() {
       name: "Messages",
       href: "/admin/messages",
       icon: Mail,
+    },
+    {
+      name: "Metrics",
+      href: "/admin/metrics",
+      icon: BarChart3,
     },
   ];
 
