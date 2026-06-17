@@ -29,6 +29,7 @@ export interface JobData {
   slug?: string;        // for special editions
   isSpecial: boolean;
   isMigration?: boolean;
+  thumbnailPath?: string;
 }
 
 export async function addPdfJob(jobId: string, data: JobData) {

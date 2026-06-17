@@ -23,7 +23,7 @@ const worker = new Worker<JobData>(
   "pdf-conversion",
   async (job) => {
     const jobId = job.id!;
-    const { pdfPath: rawPdfPath, publishDate, title, slug, isSpecial, isMigration } = job.data;
+    const { pdfPath: rawPdfPath, publishDate, title, slug, isSpecial, isMigration, thumbnailPath } = job.data;
 
     console.log(`👷 Worker started job ${jobId} (isSpecial: ${isSpecial}, isMigration: ${isMigration})`);
 
@@ -159,12 +159,61 @@ const worker = new Worker<JobData>(
         console.log(`⏭️ Migration job: skipping original PDF upload (already exists in storage).`);
       }
 
+      // 5.5 Handle Special Edition Cover Thumbnail (only if new publish, not migration)
+      let thumbnailUrl = null;
+      if (isSpecial && !isMigration) {
+        let thumbnailBuffer: Buffer | null = null;
+        let ext = "webp";
+
+        if (thumbnailPath && fs.existsSync(thumbnailPath)) {
+          console.log(`🖼️ Custom thumbnail provided. Processing...`);
+          thumbnailBuffer = await sharp(thumbnailPath)
+            .resize({ width: 600 })
+            .webp({ quality: 80 })
+            .toBuffer();
+        } else {
+          console.log(`🖼️ No custom thumbnail. Generating from page 1...`);
+          const page1PngPath = path.join(tempDir, `page-${jobId}_1.png`);
+          if (fs.existsSync(page1PngPath)) {
+            thumbnailBuffer = await sharp(page1PngPath)
+              .resize({ width: 600 })
+              .webp({ quality: 80 })
+              .toBuffer();
+          }
+        }
+
+        if (thumbnailBuffer) {
+          const thumbPath = `${slug}.webp`;
+          console.log(`☁️ Uploading thumbnail to special-editions-thumbnails/${thumbPath}...`);
+          const { error: thumbUploadErr } = await supabase.storage
+            .from("special-editions-thumbnails")
+            .upload(thumbPath, thumbnailBuffer, {
+              contentType: "image/webp",
+              upsert: true,
+            });
+
+          if (thumbUploadErr) {
+            console.error("⚠️ Failed to upload thumbnail:", thumbUploadErr.message);
+          } else {
+            const { data: thumbData } = supabase.storage
+              .from("special-editions-thumbnails")
+              .getPublicUrl(thumbPath);
+            thumbnailUrl = thumbData.publicUrl;
+          }
+        }
+      }
+
       // 6. Update database records
       console.log(`💾 Updating database record with page count (${totalPages})...`);
       if (isSpecial) {
+        const updateData: any = { page_count: totalPages };
+        if (thumbnailUrl) {
+          updateData.thumbnail_url = thumbnailUrl;
+        }
+
         const { error: dbErr } = await supabase
           .from("special_editions")
-          .update({ page_count: totalPages })
+          .update(updateData)
           .eq("slug", slug);
 
         if (dbErr) throw dbErr;
@@ -217,6 +266,9 @@ const worker = new Worker<JobData>(
       try {
         if (fs.existsSync(pdfPath)) {
           fs.unlinkSync(pdfPath);
+        }
+        if (thumbnailPath && fs.existsSync(thumbnailPath)) {
+          fs.unlinkSync(thumbnailPath);
         }
         if (fs.existsSync(tempDir)) {
           fs.rmSync(tempDir, { recursive: true, force: true });

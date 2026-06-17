@@ -51,6 +51,11 @@ export default function SpecialEditionAdminForm() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Conversion progress states
+  const [status, setStatus] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const isSlugEdited = useRef(false);
@@ -110,6 +115,41 @@ export default function SpecialEditionAdminForm() {
     setError(null);
   };
 
+  const pollJobStatus = (jobId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`http://localhost:4000/api/jobs/status/${jobId}`);
+        if (!res.ok) throw new Error("Failed to check status");
+
+        const data = await res.json();
+        
+        if (data.status === "processing") {
+          setStatus("processing");
+          setStatusMsg(`Processing page ${data.progress} of ${data.total}...`);
+          setProgress(data.progress);
+          setTotalPages(data.total);
+        } else if (data.status === "completed") {
+          clearInterval(interval);
+          setSuccess(true);
+          setStatus(null);
+          setStatusMsg("");
+          setLoading(false);
+          clearForm();
+          router.refresh();
+          setTimeout(() => setSuccess(false), 3000);
+        } else if (data.status === "failed") {
+          clearInterval(interval);
+          setError(data.error || "Conversion failed");
+          setStatus(null);
+          setStatusMsg("");
+          setLoading(false);
+        }
+      } catch (err: any) {
+        console.error("Polling error:", err);
+      }
+    }, 2000);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -120,77 +160,41 @@ export default function SpecialEditionAdminForm() {
 
     setLoading(true);
     setError(null);
-    setStatusMsg("Uploading PDF...");
+    setStatus("uploading");
+    setStatusMsg("Uploading PDF and assets...");
+    setProgress(0);
+    setTotalPages(0);
 
     try {
-      // 1. Upload PDF
-      const pdfPath = `${slug}.pdf`;
-      const { error: pdfUploadError } = await supabase.storage
-        .from("special-editions-pdf")
-        .upload(pdfPath, file, { upsert: true, contentType: "application/pdf" });
+      const formData = new FormData();
+      formData.append("pdf", file);
+      formData.append("date", date);
+      formData.append("title", title);
+      formData.append("slug", slug);
+      formData.append("isSpecial", "true");
 
-      if (pdfUploadError) throw pdfUploadError;
-
-      // 2. Handle Thumbnail
-      let thumbnailUrl = null;
-      let thumbBlob: Blob | File | null = thumbnail;
-
-      if (!thumbBlob) {
-        // Auto-generate thumbnail from page 1 of PDF
-        setStatusMsg("Generating thumbnail from PDF...");
-        try {
-          thumbBlob = await generateThumbnailFromPdf(file);
-        } catch (thumbGenErr) {
-          console.warn("Auto-thumbnail generation failed, continuing without thumbnail:", thumbGenErr);
-          thumbBlob = null;
-        }
+      if (thumbnail) {
+        formData.append("thumbnail", thumbnail);
       }
 
-      if (thumbBlob) {
-        setStatusMsg("Uploading thumbnail...");
-        const isManual = thumbnail !== null;
-        const thumbExtension = isManual ? thumbnail!.name.split(".").pop() : "jpg";
-        const thumbPath = `${slug}.${thumbExtension}`;
-        const thumbContentType = isManual ? thumbnail!.type : "image/jpeg";
-
-        const { error: thumbUploadError } = await supabase.storage
-          .from("special-editions-thumbnails")
-          .upload(thumbPath, thumbBlob, { upsert: true, contentType: thumbContentType });
-
-        if (thumbUploadError) throw thumbUploadError;
-
-        const { data: thumbData } = supabase.storage
-          .from("special-editions-thumbnails")
-          .getPublicUrl(thumbPath);
-        thumbnailUrl = thumbData.publicUrl;
-      }
-
-      // 3. Insert into Database
-      setStatusMsg("Saving to database...");
-      const { error: dbError } = await supabase.from("special_editions").insert({
-        title,
-        slug,
-        publish_date: date,
-        thumbnail_url: thumbnailUrl,
+      const response = await fetch("http://localhost:4000/api/editions/upload", {
+        method: "POST",
+        body: formData,
       });
 
-      if (dbError) {
-        if (dbError.code === "23505") {
-          throw new Error("A special edition with this slug already exists.");
-        }
-        throw dbError;
+      if (!response.ok) {
+        const errJson = await response.json();
+        throw new Error(errJson.error || "Upload to conversion service failed");
       }
 
-      setSuccess(true);
-      clearForm();
-    } catch (err: any) {
+      const { jobId } = await response.json();
+      pollJobStatus(jobId);
+    } catch(err: any) {
       console.error(err);
       setError(err.message ?? "Upload failed. Please try again.");
-    } finally {
-      setLoading(false);
+      setStatus(null);
       setStatusMsg("");
-      router.refresh();
-      setTimeout(() => setSuccess(false), 3000);
+      setLoading(false);
     }
   };
 
@@ -212,8 +216,19 @@ export default function SpecialEditionAdminForm() {
           </div>
         )}
         {loading && statusMsg && (
-          <div className="flex items-center gap-2 text-sm text-secondary bg-secondary-fixed/50 border border-secondary/20 px-4 py-3 rounded-xl font-medium">
-            <Loader2 size={18} className="animate-spin" /> {statusMsg}
+          <div className="flex flex-col gap-2 p-4 bg-secondary-fixed/30 border border-secondary/20 rounded-xl font-medium select-none">
+            <div className="flex items-center gap-2 text-secondary text-sm">
+              <Loader2 size={18} className="animate-spin" />
+              {statusMsg}
+            </div>
+            {status === "processing" && totalPages > 0 && (
+              <div className="w-full bg-secondary-fixed/20 rounded-full h-1.5 overflow-hidden mt-1">
+                <div
+                  className="bg-secondary h-full transition-all duration-300"
+                  style={{ width: `${(progress / totalPages) * 100}%` }}
+                ></div>
+              </div>
+            )}
           </div>
         )}
 

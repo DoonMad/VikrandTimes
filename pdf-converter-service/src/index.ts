@@ -84,25 +84,33 @@ app.get("/api/jobs/status/:jobId", (req, res) => {
 });
 
 // POST endpoint to upload a PDF for conversion
-app.post("/api/editions/upload", upload.single("pdf"), async (req, res) => {
+app.post("/api/editions/upload", upload.fields([
+  { name: "pdf", maxCount: 1 },
+  { name: "thumbnail", maxCount: 1 }
+]), async (req, res) => {
   try {
-    const file = req.file;
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    const pdfFile = files?.pdf?.[0];
+    const thumbnailFile = files?.thumbnail?.[0];
     const { date, title, slug, isSpecial } = req.body;
 
-    if (!file) {
+    if (!pdfFile) {
+      if (thumbnailFile) fs.unlinkSync(thumbnailFile.path);
       return res.status(400).json({ error: "No PDF file uploaded" });
     }
 
     const isSpecialBool = isSpecial === "true" || isSpecial === true;
 
     if (isSpecialBool && (!title || !slug)) {
-      // Clean up uploaded file
-      fs.unlinkSync(file.path);
+      // Clean up uploaded files
+      fs.unlinkSync(pdfFile.path);
+      if (thumbnailFile) fs.unlinkSync(thumbnailFile.path);
       return res.status(400).json({ error: "Title and slug are required for special editions" });
     }
 
     if (!isSpecialBool && !date) {
-      fs.unlinkSync(file.path);
+      fs.unlinkSync(pdfFile.path);
+      if (thumbnailFile) fs.unlinkSync(thumbnailFile.path);
       return res.status(400).json({ error: "Date is required for normal editions" });
     }
 
@@ -118,16 +126,17 @@ app.post("/api/editions/upload", upload.single("pdf"), async (req, res) => {
 
     // 3. Queue the BullMQ job
     await addPdfJob(jobId, {
-      pdfPath: file.path,
-      fileName: file.filename,
-      originalName: file.originalname,
+      pdfPath: pdfFile.path,
+      fileName: pdfFile.filename,
+      originalName: pdfFile.originalname,
       publishDate: date,
       title,
       slug,
       isSpecial: isSpecialBool,
+      thumbnailPath: thumbnailFile?.path,
     });
 
-    console.log(`📥 Enqueued job ${jobId} for file ${file.originalname}`);
+    console.log(`📥 Enqueued job ${jobId} for file ${pdfFile.originalname}`);
 
     // 4. Return jobId immediately
     res.status(202).json({

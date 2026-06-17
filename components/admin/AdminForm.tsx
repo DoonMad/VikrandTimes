@@ -16,6 +16,11 @@ export default function AdminForm() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Conversion progress states
+  const [status, setStatus] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const today = new Date().toISOString().split("T")[0];
 
@@ -59,6 +64,38 @@ export default function AdminForm() {
     setError(null);
   };
 
+  const pollJobStatus = (jobId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`http://localhost:4000/api/jobs/status/${jobId}`);
+        if (!res.ok) throw new Error("Failed to check status");
+
+        const data = await res.json();
+        
+        if (data.status === "processing") {
+          setStatus("processing");
+          setProgress(data.progress);
+          setTotalPages(data.total);
+        } else if (data.status === "completed") {
+          clearInterval(interval);
+          setSuccess(true);
+          setStatus(null);
+          setLoading(false);
+          clearForm();
+          router.refresh();
+          setTimeout(() => setSuccess(false), 3000);
+        } else if (data.status === "failed") {
+          clearInterval(interval);
+          setError(data.error || "Conversion failed");
+          setStatus(null);
+          setLoading(false);
+        }
+      } catch (err: any) {
+        console.error("Polling error:", err);
+      }
+    }, 2000);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -69,44 +106,33 @@ export default function AdminForm() {
 
     setLoading(true);
     setError(null);
+    setStatus("uploading");
+    setProgress(0);
+    setTotalPages(0);
 
     try {
-      const filePath = `editions/${date}.pdf`;
+      const formData = new FormData();
+      formData.append("pdf", file);
+      formData.append("date", date);
+      formData.append("isSpecial", "false");
 
-      const { error: uploadError } = await supabase.storage
-        .from("editions-pdf")
-        .upload(filePath, file, {
-          upsert: true,
-          contentType: "application/pdf",
-        });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data } = supabase.storage.from('editions-pdf').getPublicUrl(filePath);
-
-      if(!data?.publicUrl){
-        throw new Error("Failed to get public URL");
-      }
-
-      const { error: dbError } = await supabase.from("editions").upsert({
-        publish_date: date,
+      const response = await fetch("http://localhost:4000/api/editions/upload", {
+        method: "POST",
+        body: formData,
       });
 
-      if (dbError) {
-        throw dbError;
+      if (!response.ok) {
+        const errJson = await response.json();
+        throw new Error(errJson.error || "Upload to conversion service failed");
       }
 
-      setSuccess(true);
-      clearForm();
+      const { jobId } = await response.json();
+      pollJobStatus(jobId);
     } catch(err: any) {
       console.error(err);
       setError(err.message ?? "Upload failed. Please try again.");
-    } finally {
+      setStatus(null);
       setLoading(false);
-      router.refresh()
-      setTimeout(() => setSuccess(false), 3000);
     }
   };
 
@@ -133,6 +159,34 @@ export default function AdminForm() {
           <div className="flex items-center gap-2 text-sm text-error bg-error-container border border-error/20 px-4 py-3 rounded-xl font-medium">
             <AlertCircle size={18} />
             {error}
+          </div>
+        )}
+
+        {/* Progress Bar */}
+        {status && (
+          <div className="space-y-2 p-4 bg-surface-container-low border border-surface-container-high rounded-xl select-none">
+            <div className="flex justify-between text-xs font-semibold text-on-surface">
+              <span>
+                {status === "uploading" ? "Uploading PDF..." : `Processing Pages...`}
+              </span>
+              {status === "processing" && totalPages > 0 && (
+                <span>{progress} / {totalPages}</span>
+              )}
+            </div>
+            <div className="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+              <div
+                className="bg-primary h-full transition-all duration-300"
+                style={{
+                  width: `${
+                    status === "uploading"
+                      ? 20
+                      : totalPages > 0
+                      ? (progress / totalPages) * 100
+                      : 0
+                  }%`,
+                }}
+              ></div>
+            </div>
           </div>
         )}
 
