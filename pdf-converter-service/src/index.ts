@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import { initializeDatabase } from "./db/init";
 import { addPdfJob } from "./queue";
 import "./worker";
+import { createClient } from "@supabase/supabase-js";
 
 dotenv.config();
 
@@ -141,8 +142,73 @@ app.post("/api/editions/upload", upload.single("pdf"), async (req, res) => {
 
 // Trigger legacy migration
 app.post("/api/admin/migrate-existing", async (req, res) => {
-  // We will code the migration trigger logic later in Commit 4
-  res.status(501).json({ error: "Migration route not implemented yet" });
+  const supabase = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  console.log("📥 Admin triggered legacy migration API.");
+
+  try {
+    const { data: normalEditions, error: normalErr } = await supabase
+      .from("editions")
+      .select("publish_date, page_count")
+      .or("page_count.eq.1,page_count.is.null");
+
+    if (normalErr) throw normalErr;
+
+    const { data: specialEditions, error: specialErr } = await supabase
+      .from("special_editions")
+      .select("slug, title, publish_date, page_count")
+      .or("page_count.eq.1,page_count.is.null");
+
+    if (specialErr) throw specialErr;
+
+    let enqueuedCount = 0;
+
+    if (normalEditions && normalEditions.length > 0) {
+      for (const edition of normalEditions) {
+        const jobId = `migrate-edition-${edition.publish_date}`;
+        // Verify if already in queue or map first
+        if (!activeJobs.has(jobId)) {
+          activeJobs.set(jobId, { status: "queued", progress: 0, total: 0 });
+          await addPdfJob(jobId, {
+            pdfPath: "",
+            publishDate: edition.publish_date,
+            isSpecial: false,
+            isMigration: true,
+          });
+          enqueuedCount++;
+        }
+      }
+    }
+
+    if (specialEditions && specialEditions.length > 0) {
+      for (const edition of specialEditions) {
+        const jobId = `migrate-special-${edition.slug}`;
+        if (!activeJobs.has(jobId)) {
+          activeJobs.set(jobId, { status: "queued", progress: 0, total: 0 });
+          await addPdfJob(jobId, {
+            pdfPath: "",
+            slug: edition.slug,
+            title: edition.title,
+            publishDate: edition.publish_date,
+            isSpecial: true,
+            isMigration: true,
+          });
+          enqueuedCount++;
+        }
+      }
+    }
+
+    res.json({
+      message: `Successfully enqueued ${enqueuedCount} legacy editions for background conversion.`,
+      enqueuedCount,
+    });
+  } catch (err: any) {
+    console.error("❌ Admin migration trigger failed:", err);
+    res.status(500).json({ error: err.message || "Migration failed to start" });
+  }
 });
 
 app.listen(PORT, () => {

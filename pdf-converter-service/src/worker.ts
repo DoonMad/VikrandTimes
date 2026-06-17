@@ -23,9 +23,9 @@ const worker = new Worker<JobData>(
   "pdf-conversion",
   async (job) => {
     const jobId = job.id!;
-    const { pdfPath, publishDate, title, slug, isSpecial } = job.data;
+    const { pdfPath: rawPdfPath, publishDate, title, slug, isSpecial, isMigration } = job.data;
 
-    console.log(`👷 Worker started job ${jobId} (isSpecial: ${isSpecial})`);
+    console.log(`👷 Worker started job ${jobId} (isSpecial: ${isSpecial}, isMigration: ${isMigration})`);
 
     activeJobs.set(jobId, {
       status: "processing",
@@ -36,6 +36,25 @@ const worker = new Worker<JobData>(
     const tempDir = path.join(__dirname, `../temp-${jobId}`);
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    const bucket = isSpecial ? "special-editions-pdf" : "editions-pdf";
+    const originalPath = isSpecial ? `${slug}.pdf` : `editions/${publishDate}.pdf`;
+    let pdfPath = rawPdfPath;
+
+    // Download PDF from Supabase if this is a migration job
+    if (isMigration) {
+      console.log(`📥 Migration job: downloading legacy PDF from ${bucket}/${originalPath}...`);
+      const { data: pdfData, error: downloadErr } = await supabase.storage
+        .from(bucket)
+        .download(originalPath);
+
+      if (downloadErr) {
+        throw new Error(`Failed to download legacy PDF: ${downloadErr.message}`);
+      }
+
+      pdfPath = path.join(tempDir, `legacy-${jobId}.pdf`);
+      fs.writeFileSync(pdfPath, Buffer.from(await pdfData.arrayBuffer()));
     }
 
     const startTime = Date.now();
@@ -123,18 +142,21 @@ const worker = new Worker<JobData>(
       }
 
       // 5. Upload original PDF to Supabase storage to maintain backwards compatibility
-      const originalPath = isSpecial ? `${slug}.pdf` : `editions/${publishDate}.pdf`;
-      console.log(`☁️ Uploading original PDF to ${bucket}/${originalPath}...`);
-      
-      const { error: pdfUploadErr } = await supabase.storage
-        .from(bucket)
-        .upload(originalPath, fs.readFileSync(pdfPath), {
-          contentType: "application/pdf",
-          upsert: true,
-        });
+      if (!isMigration) {
+        console.log(`☁️ Uploading original PDF to ${bucket}/${originalPath}...`);
+        
+        const { error: pdfUploadErr } = await supabase.storage
+          .from(bucket)
+          .upload(originalPath, fs.readFileSync(pdfPath), {
+            contentType: "application/pdf",
+            upsert: true,
+          });
 
-      if (pdfUploadErr) {
-        throw pdfUploadErr;
+        if (pdfUploadErr) {
+          throw pdfUploadErr;
+        }
+      } else {
+        console.log(`⏭️ Migration job: skipping original PDF upload (already exists in storage).`);
       }
 
       // 6. Update database records

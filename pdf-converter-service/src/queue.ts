@@ -22,12 +22,13 @@ export const pdfQueue = new Queue("pdf-conversion", {
 
 export interface JobData {
   pdfPath: string;
-  fileName: string;
-  originalName: string;
+  fileName?: string;
+  originalName?: string;
   publishDate?: string; // for normal editions
   title?: string;       // for special editions
   slug?: string;        // for special editions
   isSpecial: boolean;
+  isMigration?: boolean;
 }
 
 export async function addPdfJob(jobId: string, data: JobData) {
