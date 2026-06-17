@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📰 Vikrand Times E-Paper Platform
 
-## Getting Started
+A premium, high-performance web application for reading and managing digital newspaper editions. The platform features an optimized, page-by-page WebP rendering engine with mobile memory constraints, telemetry tracking, and a dedicated backend microservice for PDF processing.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🏗️ System Architecture
+
+The project is structured as a monorepo consisting of two primary components:
+
+1. **Frontend (Root)**: A dynamic Next.js application handling client rendering, database queries, and the admin management console.
+2. **Backend Converter (`/pdf-converter-service`)**: A Node.js microservice utilizing **BullMQ** (powered by **Redis**) and **sharp** to handle resource-heavy PDF parsing and WebP image generation page-by-page.
+
+---
+
+## 🚀 Key Features
+
+* **Lossless WebP Image Rendering**: Converts vector PDFs into high-resolution (2400px width at 200 DPI) print-quality WebP pages, reducing file sizes by **75–85%**.
+* **Mobile Page Windowing**: Prevents device crash/out-of-memory (OOM) on mobile browsers by only rendering a sliding window of **9 pages** at a time, keeping off-screen placeholders.
+* **Telemetry & Analytics**: Built-in instrumentation tracking upload processing speeds, download speeds, and client load times.
+* **Performance Dashboard**: Real-time admin views highlighting cumulative storage savings, network bandwidth reduction, and conversion speeds.
+* **Containerized Deployment**: Simple, one-command deployment workflow utilizing Docker and Docker Compose.
+
+---
+
+## 🛠️ Local Development Setup
+
+### 1. Frontend Configuration (Root)
+
+Create a [`.env.local`](file:///a:/Programming/Projects/newspaper-website/.env.local) file in the root directory:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-supabase-url.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_BACKEND_URL=http://localhost:4000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Start the Next.js development server:
+```bash
+npm install
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Backend Configuration (`/pdf-converter-service`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a `.env` file in the `pdf-converter-service/` directory:
+```env
+PORT=4000
+DATABASE_URL=postgresql://postgres:[password]@db.[project].supabase.co:5432/postgres
+SUPABASE_URL=https://[project].supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+```
 
-## Learn More
+Run the backend locally using Docker Compose:
+```bash
+cd pdf-converter-service
+docker compose up --build
+```
+*(Docker Compose will automatically start a local Redis container and hook it up to the application).*
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ☁️ Production Deployment (Oracle Cloud VM)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The backend is configured to run fully containerized on virtual machines. 
 
-## Deploy on Vercel
+### 1. VM Prerequisites
+Install Docker and Docker Compose on the host machine:
+```bash
+sudo apt update
+sudo apt install -y docker.io docker-compose-v2
+sudo usermod -aG docker ubuntu
+# Log out and log back in to apply group membership
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 2. Deployment Command
+Prepare your production `.env` credentials in `pdf-converter-service/` and run:
+```bash
+docker compose up -d --build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This starts:
+* A private, isolated **Redis** instance (not exposed to the public internet).
+* The **Express API & BullMQ Worker** exposing port `4000` to handle upload queues and database sync.
